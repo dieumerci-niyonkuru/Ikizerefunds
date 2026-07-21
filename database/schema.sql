@@ -434,6 +434,7 @@ CREATE TABLE membership_requests (
   email VARCHAR(150),
   phone VARCHAR(20),
   message TEXT,
+  photo_path VARCHAR(255) NULL,
   status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
   reviewed_by INT UNSIGNED NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -535,4 +536,5 @@ INSERT INTO notification_templates (type, subject, body) VALUES
   ('payment_due', 'Loan Payment Due', 'Dear {{name}}, your loan installment of {{amount}} is due on {{due_date}}. Please make your payment on time to avoid penalties.'),
   ('meeting_reminder', 'Upcoming Meeting', 'Dear {{name}}, reminder: "{{title}}" is scheduled on {{meeting_date}} at {{location}}.'),
   ('late_payment', 'Late Payment Alert', 'Dear {{name}}, your loan installment of {{amount}} due on {{due_date}} is now overdue. A penalty may apply.'),
-  ('password_reset_request', 'Password Reset Request', '{{username}} ({{name}}) has requested a password reset. Please set a new temporary password for them via the Password Resets page.');
+  ('password_reset_request', 'Password Reset Request', '{{username}} ({{name}}) has requested a password reset. Please set a new temporary password for them via the Password Resets page.'),
+  ('membership_approval', 'Membership Approved', 'Dear {{name}}, your request to join IKIZERE FUNDS Club has been approved by {{approved_by}}. Welcome to the club! Please contact the leadership to complete your registration.');

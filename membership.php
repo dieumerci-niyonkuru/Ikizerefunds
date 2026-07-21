@@ -11,15 +11,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reque
     $fullName = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '') ?: null;
     $phone = trim($_POST['phone'] ?? '') ?: null;
-    $message = trim($_POST['message'] ?? '') ?: null;
+    $message = trim($_POST['message'] ?? '');
 
     if ($fullName === '') {
         setFlash('error', 'Please provide your full name.');
+    } elseif ($message === '') {
+        setFlash('error', 'Please tell us why you want to join Ikizere Funds Club.');
     } else {
+        $photoPath = null;
+        if (!empty($_FILES['photo']['tmp_name']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+            $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($_FILES['photo']['tmp_name']);
+            $size = $_FILES['photo']['size'];
+
+            if (!in_array($mime, $allowed, true)) {
+                setFlash('error', 'Profile photo must be a JPG, PNG, GIF, or WebP image.');
+                redirect('membership.php');
+            }
+            if ($size > 5 * 1024 * 1024) {
+                setFlash('error', 'Profile photo must be under 5 MB.');
+                redirect('membership.php');
+            }
+
+            $ext = match($mime) { 'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp', default => 'jpg' };
+            $filename = 'member-photo-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $uploadDir = __DIR__ . '/assets/uploads';
+            if (!is_dir($uploadDir)) { mkdir($uploadDir, 0755, true); }
+            move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . '/' . $filename);
+            $photoPath = 'assets/uploads/' . $filename;
+        }
+
         $stmt = db()->prepare(
-            'INSERT INTO membership_requests (full_name, email, phone, message) VALUES (?, ?, ?, ?)'
+            'INSERT INTO membership_requests (full_name, email, phone, message, photo_path) VALUES (?, ?, ?, ?, ?)'
         );
-        $stmt->execute([$fullName, $email, $phone, $message]);
+        $stmt->execute([$fullName, $email, $phone, $message, $photoPath]);
         setFlash('success', 'Thank you! Your request to join has been sent to our leadership. They will reach out to you soon.');
     }
     redirect('membership.php');
@@ -93,11 +119,11 @@ require __DIR__ . '/includes/header.php';
 <div class="card max-w-lg">
     <h2>Request to Join</h2>
     <p class="text-gray-500 text-sm">Fill this in and a leader will follow up to complete your registration.</p>
-    <form method="post" action="">
+    <form method="post" action="" enctype="multipart/form-data">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="request_join">
 
-        <label for="full_name">Full Name</label>
+        <label for="full_name">Full Name *</label>
         <input type="text" id="full_name" name="full_name" required>
 
         <label for="email">Email</label>
@@ -106,8 +132,12 @@ require __DIR__ . '/includes/header.php';
         <label for="phone">Phone</label>
         <input type="text" id="phone" name="phone">
 
-        <label for="message">Message (optional)</label>
-        <textarea id="message" name="message" rows="3"></textarea>
+        <label for="message">Why do you want to join Ikizere Funds? *</label>
+        <textarea id="message" name="message" rows="3" required placeholder="Tell us about yourself and why you'd like to join..."></textarea>
+
+        <label for="photo">Profile Photo (optional)</label>
+        <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/gif,image/webp">
+        <small class="text-gray-400">JPG, PNG, GIF, or WebP. Max 5 MB.</small>
 
         <button type="submit">Request to Join</button>
     </form>

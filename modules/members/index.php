@@ -98,6 +98,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_m
     $kinName    = trim($_POST['kin_name'] ?? '');
     $kinRelationship = trim($_POST['kin_relationship'] ?? '') ?: null;
     $kinPhone   = trim($_POST['kin_phone'] ?? '') ?: null;
+    $prefillPhoto = trim($_POST['prefill_photo'] ?? '') ?: null;
+
+    $photoPath = $prefillPhoto;
+    if (!empty($_FILES['photo']['tmp_name']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($_FILES['photo']['tmp_name']);
+        $size = $_FILES['photo']['size'];
+
+        if (in_array($mime, $allowed, true) && $size <= 5 * 1024 * 1024) {
+            $ext = match($mime) { 'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp', default => 'jpg' };
+            $filename = 'member-photo-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
+            $uploadDir = __DIR__ . '/../../assets/uploads';
+            if (!is_dir($uploadDir)) { mkdir($uploadDir, 0755, true); }
+            move_uploaded_file($_FILES['photo']['tmp_name'], $uploadDir . '/' . $filename);
+            $photoPath = 'assets/uploads/' . $filename;
+        }
+    }
 
     if ($fullName === '' || $username === '' || $memberNo === '') {
         setFlash('error', 'Full name, username, and member number are required.');
@@ -112,10 +130,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_m
             $roleId = $roleStmt->fetchColumn();
 
             $stmt = $pdo->prepare(
-                'INSERT INTO users (role_id, full_name, username, email, phone, password_hash, status)
-                 VALUES (?, ?, ?, ?, ?, ?, "active")'
+                'INSERT INTO users (role_id, full_name, username, email, phone, photo_path, password_hash, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, "active")'
             );
-            $stmt->execute([$roleId, $fullName, $username, $email, $phone, password_hash($tempPassword, PASSWORD_DEFAULT)]);
+            $stmt->execute([$roleId, $fullName, $username, $email, $phone, $photoPath, password_hash($tempPassword, PASSWORD_DEFAULT)]);
             $userId = $pdo->lastInsertId();
 
             $stmt = $pdo->prepare(
@@ -289,9 +307,17 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card max-w-lg">
     <h2>Register New Member</h2>
-    <form method="post" action="">
+    <?php $prefillPhoto = $_GET['prefill_photo'] ?? ''; ?>
+    <?php if ($prefillPhoto): ?>
+        <div class="flex items-center gap-3 mb-4 p-3 bg-green-50 rounded-lg">
+            <img src="<?= e(APP_URL) ?>/<?= e($prefillPhoto) ?>" alt="Applicant photo" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+            <div class="text-sm text-green-800">Photo from membership request will be used as profile picture.</div>
+        </div>
+    <?php endif; ?>
+    <form method="post" action="" enctype="multipart/form-data">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="add_member">
+        <input type="hidden" name="prefill_photo" value="<?= e($prefillPhoto) ?>">
 
         <label for="member_number">Member Number</label>
         <input type="text" id="member_number" name="member_number" required>
@@ -316,6 +342,10 @@ require __DIR__ . '/../../includes/header.php';
 
         <label for="address">Address</label>
         <input type="text" id="address" name="address">
+
+        <label for="photo">Profile Photo (optional)</label>
+        <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/gif,image/webp">
+        <small class="text-gray-400">JPG, PNG, GIF, or WebP. Max 5 MB.</small>
 
         <h3 class="mb-1" style="margin-top:1rem;">Next of Kin (optional)</h3>
         <label for="kin_name">Full Name</label>

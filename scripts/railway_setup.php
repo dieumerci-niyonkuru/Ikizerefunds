@@ -198,4 +198,25 @@ if ($templateCheck->fetchColumn() == 0) {
     echo "[Railway Setup] Added password_reset_request notification template.\n";
 }
 
+// ---- Ensure membership_requests has photo_path column ----
+try {
+    $pdo->exec("ALTER TABLE membership_requests ADD COLUMN photo_path VARCHAR(255) NULL AFTER message");
+    echo "[Railway Setup] Added photo_path column to membership_requests.\n";
+} catch (PDOException $e) {
+    // Column already exists
+}
+
+// ---- Ensure membership_approval notification template exists ----
+$templateCheck2 = $pdo->prepare("SELECT COUNT(*) FROM notification_templates WHERE type = 'membership_approval'");
+$templateCheck2->execute();
+if ($templateCheck2->fetchColumn() == 0) {
+    $pdo->prepare("INSERT INTO notification_templates (type, subject, body) VALUES (?, ?, ?)")
+        ->execute([
+            'membership_approval',
+            'Membership Approved',
+            'Dear {{name}}, your request to join IKIZERE FUNDS Club has been approved by {{approved_by}}. Welcome to the club! Please contact the leadership to complete your registration.',
+        ]);
+    echo "[Railway Setup] Added membership_approval notification template.\n";
+}
+
 echo "[Railway Setup] Done.\n";
