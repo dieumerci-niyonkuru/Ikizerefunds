@@ -4,12 +4,12 @@ require_once __DIR__ . '/functions.php';
 $user = function_exists('currentUser') ? currentUser() : null;
 
 $siteName = APP_NAME;
-$siteLogo = null;
+$siteLogo = 'assets/images/logo.png';
 if (function_exists('db')) {
     $rows = db()->query('SELECT setting_key, setting_value FROM club_settings')->fetchAll();
     $settings = array_column($rows, 'setting_value', 'setting_key');
     $siteName = $settings['club_name'] ?? APP_NAME;
-    $siteLogo = $settings['logo_path'] ?? null;
+    if (!empty($settings['logo_path'])) { $siteLogo = $settings['logo_path']; }
 }
 
 $navItems = $user ? require __DIR__ . '/nav.php' : [];
@@ -46,21 +46,34 @@ if ($currentFile === '' || $currentFile === '/') {
             body { @apply bg-gray-100 text-gray-900; }
 
             /* Topbar */
-            .topbar { @apply sticky top-0 z-20 flex h-[60px] items-center justify-between gap-4 bg-primary px-3 sm:px-5 text-white shadow; }
-            .brand { @apply flex items-center gap-2 text-base sm:text-lg font-bold text-white no-underline; }
-            .brand-logo { @apply h-9 w-9 sm:h-11 sm:w-11 rounded-md bg-white p-1 object-contain shadow-sm; }
-            .topbar-nav { @apply flex items-center gap-2 sm:gap-4; }
+            .topbar { @apply sticky top-0 z-20 flex h-[60px] items-center justify-between gap-2 sm:gap-4 bg-primary px-2 sm:px-5 text-white shadow; }
+            .brand { @apply flex items-center gap-2 text-sm sm:text-lg font-bold text-white no-underline min-w-0 shrink-0; }
+            .brand-logo { @apply h-8 w-8 sm:h-10 sm:w-10 rounded-md bg-white p-0.5 object-contain shadow-sm; }
+            .brand span { @apply truncate; }
+            .topbar-nav { @apply flex items-center gap-1 sm:gap-4 shrink-0; }
             .topbar-nav a { @apply text-white no-underline; }
             .user-chip { @apply text-sm hidden md:inline; }
             .user-chip small { @apply opacity-80; }
             .sidebar-toggle { @apply inline-block md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer; }
 
-            /* Public tab navigation */
+            /* Public tab navigation — desktop inline */
             .public-nav-links { @apply hidden md:flex items-center gap-0; }
             .public-nav-link { @apply px-3 py-2 rounded-md text-sm font-medium text-white/90 no-underline hover:bg-white/10 transition-colors; }
             .public-nav-link.active { @apply bg-white/15 text-white font-semibold; }
-            .public-nav-toggle { @apply md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer leading-none p-1; }
-            .public-nav-panel { @apply md:hidden absolute top-[60px] left-0 right-0 bg-primary-dark shadow-lg z-30 flex flex-col p-3 gap-1; }
+            .public-nav-toggle { @apply md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer leading-none p-1 shrink-0; }
+            /* Mobile slide-down panel */
+            .public-nav-panel { @apply md:hidden absolute top-full left-0 right-0 bg-primary-dark shadow-xl z-30 flex flex-col max-h-[70vh] overflow-y-auto; }
+            .public-nav-panel.hidden { display: none; }
+            /* Mobile accordion items */
+            .mobile-nav-group-header { @apply flex items-center justify-between w-full px-4 py-3 text-base font-medium text-white no-underline cursor-pointer bg-transparent border-0 text-left hover:bg-white/10 transition-colors; }
+            .mobile-nav-group-header .arrow { @apply text-white/50 text-xs transition-transform duration-200; }
+            .mobile-nav-group-header.open .arrow { @apply rotate-180; }
+            .mobile-nav-submenu { @apply hidden bg-white/5; }
+            .mobile-nav-submenu.open { display: block; }
+            .mobile-nav-submenu a { @apply block pl-8 pr-4 py-3 text-sm text-white/80 no-underline border-b border-white/5 last:border-b-0 hover:bg-white/10 hover:text-white transition-colors; }
+            .mobile-nav-single { @apply block px-4 py-3 text-base text-white/90 no-underline border-b border-white/5 last:border-b-0 hover:bg-white/10 transition-colors; }
+            .mobile-nav-single.active { @apply bg-white/15 text-white font-semibold; }
+            /* Desktop dropdown */
             .nav-dropdown { @apply relative; }
             .nav-dropdown-menu { @apply absolute top-full left-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[200px] hidden z-40; }
             .nav-dropdown:hover .nav-dropdown-menu { @apply block; }
@@ -175,7 +188,7 @@ if ($currentFile === '' || $currentFile === '/') {
 <?php require __DIR__ . '/page_loader.php'; ?>
 <header class="topbar relative">
     <a class="brand" href="<?= e(APP_URL) ?>/index.php">
-        <?php if ($siteLogo): ?><img src="<?= e(APP_URL) ?>/<?= e($siteLogo) ?>" alt="" class="brand-logo"><?php endif; ?>
+        <img src="<?= e(APP_URL) ?>/<?= e($siteLogo) ?>" alt="" class="brand-logo">
         <span><?= e($siteName) ?></span>
     </a>
 
@@ -215,24 +228,36 @@ if ($currentFile === '' || $currentFile === '/') {
                 <?php endif; ?>
             <?php endforeach; ?>
         </nav>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 shrink-0">
             <a href="<?= e(APP_URL) ?>/login.php" class="btn hidden sm:inline-block">Login</a>
-            <button class="public-nav-toggle no-print" type="button" aria-label="Toggle menu" onclick="document.getElementById('public-nav-panel').classList.toggle('hidden')">&#9776;</button>
+            <button class="public-nav-toggle no-print" type="button" aria-label="Toggle menu" onclick="var p=document.getElementById('public-nav-panel'); p.classList.toggle('hidden');">&#9776;</button>
         </div>
         <div class="public-nav-panel hidden" id="public-nav-panel">
             <?php foreach ($publicNavItems as $item): ?>
                 <?php if (!empty($item['children'])): ?>
-                    <div class="border-b border-white/10 pb-2 mb-1">
-                        <div class="public-nav-link font-semibold text-white/60 cursor-default text-xs uppercase tracking-wide"><?= e($item['label']) ?></div>
-                        <?php foreach ($item['children'] as $child): ?>
-                            <a class="public-nav-link pl-4 text-base<?= $currentFile === $child['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>"><?= e($child['label']) ?></a>
-                        <?php endforeach; ?>
+                    <?php
+                    $isGroupActive = false;
+                    foreach ($item['children'] as $child) {
+                        if ($currentFile === $child['href']) { $isGroupActive = true; break; }
+                    }
+                    ?>
+                    <div class="mobile-nav-group">
+                        <button type="button" class="mobile-nav-group-header <?= $isGroupActive ? 'open' : '' ?>"
+                                onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+                            <span><?= e($item['label']) ?></span>
+                            <span class="arrow">&#9662;</span>
+                        </button>
+                        <div class="mobile-nav-submenu <?= $isGroupActive ? 'open' : '' ?>">
+                            <?php foreach ($item['children'] as $child): ?>
+                                <a href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>" class="<?= $currentFile === $child['href'] ? ' font-semibold text-white' : '' ?>"><?= e($child['label']) ?></a>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
                 <?php else: ?>
-                    <a class="public-nav-link text-base<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?></a>
+                    <a class="mobile-nav-single<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>" onclick="document.getElementById('public-nav-panel').classList.add('hidden')"><?= e($item['label']) ?></a>
                 <?php endif; ?>
             <?php endforeach; ?>
-            <a class="public-nav-link sm:hidden text-base" href="<?= e(APP_URL) ?>/login.php">Login</a>
+            <a class="mobile-nav-single sm:hidden" href="<?= e(APP_URL) ?>/login.php" onclick="document.getElementById('public-nav-panel').classList.add('hidden')">Login</a>
         </div>
     <?php endif; ?>
 </header>
