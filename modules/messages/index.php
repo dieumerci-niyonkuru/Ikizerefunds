@@ -52,18 +52,21 @@ if ($isLeadership && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] 
 // ------------------------------------------------------------
 if ($isLeadership) {
     $threads = db()->query(
-        "SELECT messages.id, messages.subject, messages.created_at, users.full_name AS sender_name, users.photo_path AS sender_photo,
+        "SELECT messages.id, messages.subject, messages.created_at, users.full_name AS sender_name, users.photo_path AS sender_photo, roles.name AS sender_role,
                 (SELECT COUNT(*) FROM messages r WHERE r.parent_id = messages.id) AS reply_count
          FROM messages
          JOIN users ON users.id = messages.sender_id
+         JOIN roles ON roles.id = users.role_id
          WHERE messages.channel = 'member_leadership' AND messages.parent_id IS NULL
          ORDER BY messages.created_at DESC"
     )->fetchAll();
 } else {
     $stmt = db()->prepare(
-        "SELECT messages.id, messages.subject, messages.created_at,
+        "SELECT messages.id, messages.subject, messages.created_at, users.full_name AS sender_name, users.photo_path AS sender_photo, roles.name AS sender_role,
                 (SELECT COUNT(*) FROM messages r WHERE r.parent_id = messages.id) AS reply_count
          FROM messages
+         JOIN users ON users.id = messages.sender_id
+         JOIN roles ON roles.id = users.role_id
          WHERE messages.channel = 'member_leadership' AND messages.parent_id IS NULL AND messages.sender_id = ?
          ORDER BY messages.created_at DESC"
     );
@@ -74,10 +77,11 @@ if ($isLeadership) {
 $boardPosts = [];
 if ($isLeadership) {
     $boardPosts = db()->query(
-        "SELECT messages.id, messages.subject, messages.created_at, users.full_name AS sender_name, users.photo_path AS sender_photo,
+        "SELECT messages.id, messages.subject, messages.created_at, users.full_name AS sender_name, users.photo_path AS sender_photo, roles.name AS sender_role,
                 (SELECT COUNT(*) FROM messages r WHERE r.parent_id = messages.id) AS reply_count
          FROM messages
          JOIN users ON users.id = messages.sender_id
+         JOIN roles ON roles.id = users.role_id
          WHERE messages.channel = 'leadership_only' AND messages.parent_id IS NULL
          ORDER BY messages.created_at DESC"
     )->fetchAll();
@@ -132,14 +136,20 @@ require __DIR__ . '/../../includes/header.php';
     <table>
         <thead>
         <tr>
-            <?php if ($isLeadership): ?><th>From</th><?php endif; ?>
+            <th>From</th>
             <th>Subject</th><th>Replies</th><th>Date</th><th></th>
         </tr>
         </thead>
         <tbody>
         <?php foreach ($threads as $t): ?>
             <tr>
-                <?php if ($isLeadership): ?><td class="flex items-center gap-2"><?= avatarHtml($t['sender_photo'], $t['sender_name']) ?> <?= e($t['sender_name']) ?></td><?php endif; ?>
+                <td class="flex items-center gap-2">
+                    <?= avatarHtml($t['sender_photo'] ?? null, $t['sender_name'], 'w-8 h-8 text-xs') ?>
+                    <div>
+                        <div class="font-semibold text-sm leading-tight"><?= e($t['sender_name']) ?></div>
+                        <div class="text-gray-400 text-xs leading-tight"><?= e(str_replace('_', ' ', ucfirst($t['sender_role'] ?? ''))) ?></div>
+                    </div>
+                </td>
                 <td><?= e($t['subject']) ?></td>
                 <td><?= e((string) $t['reply_count']) ?></td>
                 <td><?= e($t['created_at']) ?></td>
@@ -147,7 +157,7 @@ require __DIR__ . '/../../includes/header.php';
             </tr>
         <?php endforeach; ?>
         <?php if (!$threads): ?>
-            <tr><td colspan="<?= $isLeadership ? 5 : 4 ?>">No messages yet.</td></tr>
+            <tr><td colspan="5">No messages yet.</td></tr>
         <?php endif; ?>
         </tbody>
     </table>
@@ -163,7 +173,13 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach ($boardPosts as $p): ?>
             <tr>
-                <td class="flex items-center gap-2"><?= avatarHtml($p['sender_photo'], $p['sender_name']) ?> <?= e($p['sender_name']) ?></td>
+                <td class="flex items-center gap-2">
+                    <?= avatarHtml($p['sender_photo'] ?? null, $p['sender_name'], 'w-8 h-8 text-xs') ?>
+                    <div>
+                        <div class="font-semibold text-sm leading-tight"><?= e($p['sender_name']) ?></div>
+                        <div class="text-gray-400 text-xs leading-tight"><?= e(str_replace('_', ' ', ucfirst($p['sender_role'] ?? ''))) ?></div>
+                    </div>
+                </td>
                 <td><?= e($p['subject']) ?></td>
                 <td><?= e((string) $p['reply_count']) ?></td>
                 <td><?= e($p['created_at']) ?></td>
