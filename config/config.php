@@ -23,10 +23,16 @@ if (file_exists($envFile)) {
     }
 }
 
-define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
-define('DB_NAME', getenv('DB_NAME') ?: 'ikizere_funds');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
+// ---- Auto-detect Railway MySQL env vars (MYSQLHOST, MYSQL_DATABASE, etc.) ----
+function env(string $key, string $default = ''): string {
+    return getenv($key) ?: $default;
+}
+$railwayHost = env('MYSQLHOST');
+define('DB_HOST', env('DB_HOST') ?: ($railwayHost ?: '127.0.0.1'));
+define('DB_PORT', env('DB_PORT') ?: (env('MYSQLPORT') ?: '3306'));
+define('DB_NAME', env('DB_NAME') ?: (env('MYSQL_DATABASE') ?: 'ikizere_funds'));
+define('DB_USER', env('DB_USER') ?: (env('MYSQL_USER') ?: 'root'));
+define('DB_PASS', env('DB_PASS') ?: env('MYSQL_PASSWORD', ''));
 
 define('APP_NAME', 'IKIZERE FUNDS Club');
 define('APP_URL', getenv('APP_URL') ?: 'http://localhost/ikizere_funds');
