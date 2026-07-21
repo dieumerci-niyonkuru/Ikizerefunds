@@ -21,6 +21,9 @@ require __DIR__ . '/includes/header.php';
                      class="w-32 h-32 rounded-full object-cover object-top mx-auto mb-3 border border-gray-200">
                 <div class="font-semibold"><?= e($leader['name']) ?></div>
                 <div class="text-gray-500 text-sm mb-1"><?= e($leader['title']) ?></div>
+                <?php if (!empty($leader['phone'])): ?>
+                    <div class="text-xs text-gray-500">TEL: <?= e($leader['phone']) ?></div>
+                <?php endif; ?>
                 <?php if (!empty($leader['email'])): ?>
                     <a href="mailto:<?= e($leader['email']) ?>" class="text-xs"><?= e($leader['email']) ?></a>
                 <?php endif; ?>

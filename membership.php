@@ -29,7 +29,7 @@ require __DIR__ . '/includes/header.php';
 ?>
 <div class="card">
     <h1>Membership</h1>
-    <p>Joining <?= e($siteName) ?> gives you access to structured savings, affordable
+    <p>Joining <?= e($siteName) ?> at <strong>Tumba College, Rulindo District</strong> gives you access to structured savings, affordable
     loans, and a transparent, digitally-managed club. Here's how it works.</p>
 </div>
 

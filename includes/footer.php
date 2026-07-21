@@ -10,7 +10,7 @@
         <div class="grid gap-6 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] pb-4">
             <div>
                 <div class="font-bold mb-2"><?= e($siteName ?? APP_NAME) ?></div>
-                <p class="text-gray-500 text-sm">A savings and credit club managed with transparency and accountability.</p>
+                <p class="text-gray-500 text-sm">A savings and credit club at Tumba College, Rulindo District, Northern Province, Rwanda.</p>
             </div>
             <div>
                 <div class="font-semibold text-sm mb-2">Quick Links</div>
@@ -23,7 +23,14 @@
                     <li><a href="<?= e(APP_URL) ?>/contact.php">Contact</a></li>
                 </ul>
             </div>
-            <?php if (!empty($settings['club_email']) || !empty($settings['club_phone'])): ?>
+            <div>
+                <div class="font-semibold text-sm mb-2">Location</div>
+                <ul class="text-sm space-y-1 text-gray-600">
+                    <li>Tumba College</li>
+                    <li>Rulindo District</li>
+                    <li>Northern Province, Rwanda</li>
+                </ul>
+            </div>
             <div>
                 <div class="font-semibold text-sm mb-2">Contact</div>
                 <ul class="text-sm space-y-1 text-gray-600">
@@ -33,12 +40,12 @@
                     <?php if (!empty($settings['club_phone'])): ?>
                         <li><a href="tel:<?= e($settings['club_phone']) ?>"><?= e($settings['club_phone']) ?></a></li>
                     <?php endif; ?>
+                    <li class="text-gray-400">Tumba College, Rulindo</li>
                 </ul>
             </div>
-            <?php endif; ?>
         </div>
         <div class="pt-4 border-t border-gray-100 text-sm text-gray-500 pb-6">
-            &copy; <?= date('Y') ?> <?= e($siteName ?? APP_NAME) ?>. All rights reserved.
+            &copy; <?= date('Y') ?> <?= e($siteName ?? APP_NAME) ?> &mdash; Tumba College, Rulindo District. All rights reserved.
         </div>
     </div>
 </footer>
