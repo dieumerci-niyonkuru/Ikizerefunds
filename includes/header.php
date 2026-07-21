@@ -1,13 +1,27 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';
+
+// Cache static pages for returning visitors
+if (!isLoggedIn()) {
+    header('Cache-Control: public, max-age=300');
+}
+
 $user = function_exists('currentUser') ? currentUser() : null;
 
 $siteName = APP_NAME;
 $siteLogo = 'assets/images/logo.png';
 if (function_exists('db')) {
-    $rows = db()->query('SELECT setting_key, setting_value FROM club_settings')->fetchAll();
-    $settings = array_column($rows, 'setting_value', 'setting_key');
+    // Cache settings in a file to avoid DB query on every page load
+    $cacheFile = sys_get_temp_dir() . '/ikizere_settings.cache';
+    $settings = [];
+    if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 3600) {
+        $settings = (array) json_decode(file_get_contents($cacheFile), true);
+    } else {
+        $rows = db()->query('SELECT setting_key, setting_value FROM club_settings')->fetchAll();
+        $settings = array_column($rows, 'setting_value', 'setting_key');
+        @file_put_contents($cacheFile, json_encode($settings));
+    }
     $siteName = $settings['club_name'] ?? APP_NAME;
     if (!empty($settings['logo_path'])) { $siteLogo = $settings['logo_path']; }
 }

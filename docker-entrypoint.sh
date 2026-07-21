@@ -46,7 +46,16 @@ done
 # ---- Run the setup script ----
 php /var/www/html/scripts/railway_setup.php
 
-# ---- Start PHP built-in server ----
+# ---- Start PHP built-in server with OPcache ----
 PORT="${PORT:-8080}"
 echo "Starting server on port $PORT..."
-exec php -S 0.0.0.0:$PORT -t /var/www/html
+exec php -S 0.0.0.0:$PORT -t /var/www/html \
+    -d opcache.enable=1 \
+    -d opcache.memory_consumption=64 \
+    -d opcache.interned_strings_buffer=8 \
+    -d opcache.max_accelerated_files=2000 \
+    -d opcache.revalidate_freq=0 \
+    -d opcache.validate_timestamps=0 \
+    -d opcache.save_comments=1 \
+    -d memory_limit=128M \
+    -d max_execution_time=30
