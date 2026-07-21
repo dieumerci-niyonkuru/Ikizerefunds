@@ -87,9 +87,19 @@ $pdo->exec("USE `{$name}`");
 // ---- Check if already set up ----
 try {
     $result = $pdo->query("SELECT COUNT(*) FROM roles")->fetchColumn();
-    if ($result > 0) {
-        echo "[Railway Setup] Database already seeded ({$result} roles found). Skipping import.\n";
+    // Also check that core tables exist
+    $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+    $hasUsers = in_array('users', $tables);
+    if ($result > 0 && $hasUsers) {
+        echo "[Railway Setup] Database already seeded ({$result} roles, " . count($tables) . " tables). Skipping import.\n";
     } else {
+        // Partial import — drop everything and start fresh
+        echo "[Railway Setup] Incomplete schema detected. Dropping and re-importing...\n";
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+        foreach ($tables as $t) {
+            $pdo->exec("DROP TABLE IF EXISTS `$t`");
+        }
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
         throw new Exception("empty");
     }
 } catch (Exception $e) {
@@ -102,6 +112,10 @@ try {
     }
 
     $sql = file_get_contents($schemaFile);
+    // Remove multi-line comments (-- ...)
+    $sql = preg_replace('/--[^\n]*/', '', $sql);
+    // Remove block comments
+    $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);
     // Remove CREATE DATABASE / USE statements (we already created it)
     $sql = preg_replace('/CREATE DATABASE.*?;/is', '', $sql);
     $sql = preg_replace('/USE\s+`?[\w]+`?\s*;/is', '', $sql);
