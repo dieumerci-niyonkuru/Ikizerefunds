@@ -46,7 +46,16 @@ define('DB_USER', env('DB_USER') ?: (env('MYSQL_USER') ?: 'root'));
 define('DB_PASS', env('DB_PASS') ?: env('MYSQL_PASSWORD', ''));
 
 define('APP_NAME', 'IKIZERE FUNDS Club');
-define('APP_URL', getenv('APP_URL') ?: 'http://localhost/ikizere_funds');
+
+// Auto-detect APP_URL from request if not set (works on Railway, Render, etc.)
+if (getenv('APP_URL')) {
+    define('APP_URL', getenv('APP_URL'));
+} elseif (!empty($_SERVER['HTTP_HOST'])) {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    define('APP_URL', $scheme . '://' . $_SERVER['HTTP_HOST']);
+} else {
+    define('APP_URL', 'http://localhost/ikizere_funds');
+}
 
 // Show errors only in development. Defaults to OFF (fail-safe) so a
 // forgotten env var on a production host never leaks stack traces —
