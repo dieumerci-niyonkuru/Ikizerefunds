@@ -1,0 +1,16 @@
+{
+  "name": "ikizere-funds",
+  "description": "Ikizere Funds Club — savings & credit club management system",
+  "type": "php",
+  "require": {
+    "php": ">=8.0",
+    "ext-pdo_mysql": "*",
+    "ext-fileinfo": "*"
+  },
+  "scripts": {
+    "post-autoload-dump": []
+  },
+  "config": {
+    "optimize-autoloader": true
+  }
+}
