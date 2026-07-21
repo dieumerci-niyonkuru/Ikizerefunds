@@ -23,12 +23,23 @@ if (file_exists($envFile)) {
     }
 }
 
-// ---- Auto-detect Railway MySQL env vars (MYSQLHOST, MYSQL_DATABASE, etc.) ----
+// ---- Auto-detect database from env vars ----
 function env(string $key, string $default = ''): string {
     return getenv($key) ?: $default;
 }
-$railwayHost = env('MYSQLHOST');
-define('DB_HOST', env('DB_HOST') ?: ($railwayHost ?: '127.0.0.1'));
+
+// Parse DATABASE_URL or MYSQL_URL if provided (Railway, Render, etc.)
+$dbUrl = env('DATABASE_URL') ?: env('MYSQL_URL');
+if ($dbUrl && $parsed = parse_url($dbUrl)) {
+    if (!getenv('DB_HOST') && isset($parsed['host']))  putenv('DB_HOST=' . $parsed['host']);
+    if (!getenv('DB_PORT') && isset($parsed['port']))  putenv('DB_PORT=' . $parsed['port']);
+    if (!getenv('DB_NAME') && isset($parsed['path']))  putenv('DB_NAME=' . ltrim($parsed['path'], '/'));
+    if (!getenv('DB_USER') && isset($parsed['user']))  putenv('DB_USER=' . $parsed['user']);
+    if (!getenv('DB_PASS') && isset($parsed['pass']))  putenv('DB_PASS=' . $parsed['pass']);
+}
+
+// Fallback chain: DB_* → MYSQL* → defaults
+define('DB_HOST', env('DB_HOST') ?: (env('MYSQLHOST') ?: '127.0.0.1'));
 define('DB_PORT', env('DB_PORT') ?: (env('MYSQLPORT') ?: '3306'));
 define('DB_NAME', env('DB_NAME') ?: (env('MYSQL_DATABASE') ?: 'ikizere_funds'));
 define('DB_USER', env('DB_USER') ?: (env('MYSQL_USER') ?: 'root'));

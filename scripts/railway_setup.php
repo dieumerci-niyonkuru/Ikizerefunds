@@ -29,6 +29,20 @@ if (file_exists($envFile)) {
     }
 }
 
+// ---- Parse DATABASE_URL if provided (Railway, Render, etc.) ----
+$dbUrl = getenv('DATABASE_URL') ?: getenv('MYSQL_URL');
+if ($dbUrl) {
+    // Format: mysql://user:pass@host:port/dbname
+    $url = parse_url($dbUrl);
+    if ($url) {
+        putenv('DB_HOST=' . ($url['host'] ?? '127.0.0.1'));
+        putenv('DB_PORT=' . ($url['port'] ?? '3306'));
+        putenv('DB_NAME=' . ltrim($url['path'] ?? '/ikizere_funds', '/'));
+        putenv('DB_USER=' . ($url['user'] ?? 'root'));
+        putenv('DB_PASS=' . ($url['pass'] ?? ''));
+    }
+}
+
 // ---- Map Railway's MySQL env vars to our DB_* constants ----
 // Railway provides: MYSQLHOST, MYSQLPORT, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD
 if (!getenv('DB_HOST') && getenv('MYSQLHOST')) {
