@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 # Install system dependencies for GD extension
 RUN apt-get update && apt-get install -y \
@@ -11,24 +11,19 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo_mysql fileinfo gd \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache mod_rewrite and disable conflicting MPM
-RUN a2enmod rewrite && a2dismod mpm_event && a2enmod mpm_prefork
-
 # Copy project files
 COPY . /var/www/html/
+WORKDIR /var/www/html
 
 # Set permissions for upload directories
-RUN mkdir -p /var/www/html/assets/uploads/documents \
-    && mkdir -p /var/www/html/assets/uploads/member_documents \
-    && chown -R www-data:www-data /var/www/html/assets/uploads
+RUN mkdir -p assets/uploads/documents \
+    && mkdir -p assets/uploads/member_documents
 
-# Apache listens on the port Railway assigns via $PORT
+# Railway sets $PORT at runtime
 ENV PORT=8080
-RUN sed -i "s/80/${PORT}/g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+EXPOSE 8080
 
-EXPOSE ${PORT}
-
-# Run setup then start Apache
+# Run setup then start PHP built-in server
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
