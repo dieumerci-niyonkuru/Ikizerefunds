@@ -138,44 +138,41 @@ try {
     echo "[Railway Setup] Imported {$imported} SQL statements.\n";
 }
 
-// ---- Create default admin if no users exist ----
-try {
-    $userCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
-} catch (PDOException $e) {
-    $userCount = 0;
+// ---- Create all leadership accounts (skip existing) ----
+$leaders = [
+    ['president',      'Club President',       'president',      'President@123',      'president@ikizere-funds.railway.app',      '+250700000001'],
+    ['vice_president', 'Vice President',       'vicepresident',  'VicePresident@123',  'vicepresident@ikizere-funds.railway.app',  '+250700000002'],
+    ['secretary',      'Secretary',            'secretary',      'Secretary@123',      'secretary@ikizere-funds.railway.app',      '+250700000003'],
+    ['accountant',     'Accountant',           'accountant',     'Accountant@123',     'accountant@ikizere-funds.railway.app',     '+250700000004'],
+    ['auditor',        'Auditor',              'auditor',        'Auditor@123',        'auditor@ikizere-funds.railway.app',        '+250700000005'],
+];
+
+$roleStmt  = $pdo->prepare('SELECT id FROM roles WHERE name = ?');
+$checkStmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
+$userStmt  = $pdo->prepare(
+    'INSERT INTO users (role_id, full_name, username, email, phone, password_hash, status)
+     VALUES (?, ?, ?, ?, ?, ?, "active")'
+);
+
+$created = 0;
+foreach ($leaders as [$role, $name, $user, $pass, $email, $phone]) {
+    $checkStmt->execute([$user]);
+    if ($checkStmt->fetchColumn() > 0) {
+        continue;
+    }
+    $roleStmt->execute([$role]);
+    $roleId = $roleStmt->fetchColumn();
+    if ($roleId) {
+        $userStmt->execute([$roleId, $name, $user, $email, $phone, password_hash($pass, PASSWORD_DEFAULT)]);
+        echo "[Railway Setup] Created {$role}: {$user} / {$pass}\n";
+        $created++;
+    }
 }
 
-if ($userCount === 0) {
-    $adminName  = getenv('ADMIN_NAME')  ?: 'Club President';
-    $adminUser  = getenv('ADMIN_USER')  ?: 'admin';
-    $adminPass  = getenv('ADMIN_PASS')  ?: 'Admin@12345';
-    $adminEmail = getenv('ADMIN_EMAIL') ?: 'admin@ikizere-funds.railway.app';
-    $adminPhone = getenv('ADMIN_PHONE') ?: '+250700000000';
-
-    $roleStmt = $pdo->prepare('SELECT id FROM roles WHERE name = ?');
-    $roleStmt->execute(['president']);
-    $roleId = $roleStmt->fetchColumn();
-
-    if ($roleId) {
-        $stmt = $pdo->prepare(
-            'INSERT INTO users (role_id, full_name, username, email, phone, password_hash, status)
-             VALUES (?, ?, ?, ?, ?, ?, "active")'
-        );
-        $stmt->execute([
-            $roleId,
-            $adminName,
-            $adminUser,
-            $adminEmail,
-            $adminPhone,
-            password_hash($adminPass, PASSWORD_DEFAULT),
-        ]);
-        echo "[Railway Setup] Created default admin: {$adminUser} / {$adminPass}\n";
-        echo "[Railway Setup] >>> CHANGE THIS PASSWORD after first login! <<<\n";
-    } else {
-        echo "[Railway Setup] Warning: 'president' role not found. Cannot create admin.\n";
-    }
+if ($created > 0) {
+    echo "[Railway Setup] Created {$created} new user(s). >>> CHANGE ALL PASSWORDS after first login! <<<\n";
 } else {
-    echo "[Railway Setup] {$userCount} user(s) already exist. Skipping admin creation.\n";
+    echo "[Railway Setup] All leadership accounts already exist.\n";
 }
 
 echo "[Railway Setup] Done.\n";
