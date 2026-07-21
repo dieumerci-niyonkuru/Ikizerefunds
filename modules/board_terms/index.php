@@ -122,11 +122,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'end_t
     redirect('modules/board_terms/index.php');
 }
 
-$allUsers = db()->query('SELECT id, full_name, username FROM users ORDER BY full_name')->fetchAll();
+$allUsers = db()->query('SELECT id, full_name, username, photo_path FROM users ORDER BY full_name')->fetchAll();
 $leadershipRoles = db()->query(LEADERSHIP_ROLE_IDS_STMT)->fetchAll();
 
 $terms = db()->query(
-    "SELECT board_terms.*, users.full_name, users.username, roles.name AS role_name
+    "SELECT board_terms.*, users.full_name, users.username, users.photo_path, roles.name AS role_name
      FROM board_terms
      JOIN users ON users.id = board_terms.user_id
      JOIN roles ON roles.id = board_terms.role_id
@@ -177,7 +177,7 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach ($terms as $t): ?>
             <tr>
-                <td><?= e($t['full_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($t['photo_path'] ?? null, $t['full_name']) ?> <?= e($t['full_name']) ?></td>
                 <td><?= e(str_replace('_', ' ', ucfirst($t['role_name']))) ?></td>
                 <td><?= e($t['start_date']) ?></td>
                 <td><?= $t['end_date'] ? e($t['end_date']) : statusBadge('active') ?></td>

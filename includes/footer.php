@@ -44,8 +44,17 @@
                 </ul>
             </div>
         </div>
-        <div class="pt-4 border-t border-gray-100 text-sm text-gray-500 pb-6">
-            &copy; <?= date('Y') ?> <?= e($siteName ?? APP_NAME) ?> &mdash; Tumba College, Rulindo District. All rights reserved.
+        <div class="pt-4 border-t border-gray-100 pb-6">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-sm text-gray-500">
+                    &copy; <?= date('Y') ?> <?= e($siteName ?? APP_NAME) ?> &mdash; Tumba College, Rulindo District. All rights reserved.
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-500">
+                    <span>Developed by</span>
+                    <img src="<?= e(APP_URL) ?>/assets/images/logo.png" alt="DMN" class="h-6 w-6 rounded object-contain">
+                    <span class="font-bold text-primary">DMN</span>
+                </div>
+            </div>
         </div>
     </div>
 </footer>

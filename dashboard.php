@@ -62,8 +62,16 @@ $stats['New Notifications'] = (int) $stmt->fetchColumn();
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="card">
-    <h1>Welcome back, <?= e($user['full_name']) ?></h1>
-    <p>Role: <strong><?= e(str_replace('_', ' ', $role)) ?></strong></p>
+    <div class="flex items-center gap-4">
+        <?= avatarHtml($user['photo_path'], $user['full_name'], 'w-16 h-16 text-xl') ?>
+        <div>
+            <h1 class="mb-0">Welcome back, <?= e($user['full_name']) ?></h1>
+            <p class="text-gray-500 text-sm mb-0">Role: <strong><?= e(str_replace('_', ' ', ucfirst($role))) ?></strong></p>
+            <?php if (!empty($user['email'])): ?>
+                <p class="text-gray-400 text-xs mb-0"><?= e($user['email']) ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
 </div>
 
 <div class="stat-grid">

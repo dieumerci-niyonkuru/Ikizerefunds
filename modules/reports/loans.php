@@ -7,7 +7,7 @@ requirePermission('reports.view');
 $user = currentUser();
 
 $loans = db()->query(
-    "SELECT loans.*, users.full_name, members.member_number, loan_types.name AS loan_type_name,
+    "SELECT loans.*, users.full_name, users.photo_path, members.member_number, loan_types.name AS loan_type_name,
             COALESCE((SELECT SUM(amount) FROM loan_payments WHERE loan_payments.loan_id = loans.id), 0) AS paid_so_far
      FROM loans
      JOIN members ON members.id = loans.member_id
@@ -58,7 +58,7 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach ($overdue as $l): ?>
             <tr>
-                <td><?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($l['photo_path'] ?? null, $l['full_name']) ?> <?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
                 <td><?= e($l['loan_type_name']) ?></td>
                 <td><?= formatMoney((float) $l['total_payable'] - (float) $l['paid_so_far']) ?></td>
                 <td><?= e($l['due_date']) ?></td>
@@ -80,7 +80,7 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach ($loans as $l): ?>
             <tr>
-                <td><?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($l['photo_path'] ?? null, $l['full_name']) ?> <?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
                 <td><?= e($l['loan_type_name']) ?></td>
                 <td><?= formatMoney((float) $l['amount']) ?></td>
                 <td><?= formatMoney((float) $l['total_payable']) ?></td>

@@ -181,13 +181,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 // Data for display
 // ------------------------------------------------------------
 $members = db()->query(
-    'SELECT members.id, members.member_number, users.full_name
+    'SELECT members.id, members.member_number, users.full_name, users.photo_path
      FROM members JOIN users ON users.id = members.user_id
      ORDER BY users.full_name'
 )->fetchAll();
 
 $fines = db()->query(
-    "SELECT fines.*, users.full_name, members.member_number
+    "SELECT fines.*, users.full_name, users.photo_path, members.member_number
      FROM fines
      JOIN members ON members.id = fines.member_id
      JOIN users ON users.id = members.user_id
@@ -271,11 +271,11 @@ require __DIR__ . '/../../includes/header.php';
     <h2>Fines</h2>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Member</th><th>Reason</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody>
-        <?php foreach ($fines as $f): ?>
-            <tr>
-                <td><?= e($f['member_number'] . ' - ' . $f['full_name']) ?></td>
+            <thead><tr><th>Member</th><th>Reason</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+            <?php foreach ($fines as $f): ?>
+                <tr>
+                    <td class="flex items-center gap-2"><?= avatarHtml($f['photo_path'] ?? null, $f['full_name']) ?> <?= e($f['member_number'] . ' - ' . $f['full_name']) ?></td>
                 <td><?= e($f['reason']) ?></td>
                 <td><?= formatMoney((float) $f['amount']) ?></td>
                 <td><?= e($f['fine_date']) ?></td>

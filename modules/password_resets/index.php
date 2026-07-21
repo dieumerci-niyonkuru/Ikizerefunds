@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reset
 
 $pendingRequests = db()->query(
     "SELECT password_resets.id, password_resets.created_at, password_resets.expires_at,
-            users.id AS user_id, users.username, users.full_name
+            users.id AS user_id, users.username, users.full_name, users.photo_path
      FROM password_resets
      JOIN users ON users.id = password_resets.user_id
      WHERE password_resets.used_at IS NULL AND password_resets.expires_at > NOW()
@@ -64,7 +64,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php foreach ($pendingRequests as $r): ?>
             <tr>
                 <td><?= e($r['username']) ?></td>
-                <td><?= e($r['full_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($r['photo_path'] ?? null, $r['full_name']) ?> <?= e($r['full_name']) ?></td>
                 <td><?= e($r['created_at']) ?></td>
                 <td><?= e($r['expires_at']) ?></td>
                 <td>

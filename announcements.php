@@ -4,8 +4,12 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/includes/auth.php';
 
 $announcements = db()->query(
-    'SELECT title, content, posted_at FROM announcements
-     WHERE is_published = 1 ORDER BY posted_at DESC'
+    'SELECT announcements.title, announcements.content, announcements.posted_at,
+            users.full_name AS posted_by_name, users.photo_path AS posted_by_photo
+     FROM announcements
+     LEFT JOIN users ON users.id = announcements.posted_by
+     WHERE announcements.is_published = 1
+     ORDER BY announcements.posted_at DESC'
 )->fetchAll();
 
 require __DIR__ . '/includes/header.php';
@@ -22,7 +26,14 @@ require __DIR__ . '/includes/header.php';
         <?php foreach ($announcements as $a): ?>
             <div class="pb-4 mb-4 border-b border-gray-200 last:border-0 last:pb-0 last:mb-0">
                 <h3 class="mb-1"><?= e($a['title']) ?></h3>
-                <small class="text-gray-500"><?= e($a['posted_at']) ?></small>
+                <div class="flex items-center gap-2 text-gray-500 text-sm mb-2">
+                    <?php if (!empty($a['posted_by_name'])): ?>
+                        <?= avatarHtml($a['posted_by_photo'] ?? null, $a['posted_by_name'], 'w-6 h-6 text-[10px]') ?>
+                        <span><?= e($a['posted_by_name']) ?></span>
+                        <span>&middot;</span>
+                    <?php endif; ?>
+                    <small><?= e($a['posted_at']) ?></small>
+                </div>
                 <p><?= nl2br(e($a['content'])) ?></p>
             </div>
         <?php endforeach; ?>

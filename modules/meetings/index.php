@@ -89,7 +89,7 @@ if ($isStaff && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? ''
 // Data for display
 // ------------------------------------------------------------
 $meetings = db()->query(
-    "SELECT meetings.*, users.full_name AS created_by_name
+    "SELECT meetings.*, users.full_name AS created_by_name, users.photo_path AS created_by_photo
      FROM meetings
      JOIN users ON users.id = meetings.created_by
      ORDER BY meeting_date DESC"
@@ -106,7 +106,7 @@ if ($isStaff && !empty($_GET['manage'])) {
 
     if ($manageMeeting) {
         $members = db()->query(
-            'SELECT members.id, members.member_number, users.full_name
+            'SELECT members.id, members.member_number, users.full_name, users.photo_path
              FROM members JOIN users ON users.id = members.user_id
              ORDER BY users.full_name'
         )->fetchAll();
@@ -141,7 +141,7 @@ require __DIR__ . '/../../includes/header.php';
     <h1>Meetings</h1>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Status</th><?php if ($isStaff): ?><th>Action</th><?php endif; ?></tr></thead>
+        <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Status</th><th>Created By</th><?php if ($isStaff): ?><th>Action</th><?php endif; ?></tr></thead>
         <tbody>
         <?php foreach ($meetings as $m): ?>
             <tr>
@@ -149,6 +149,7 @@ require __DIR__ . '/../../includes/header.php';
                 <td><?= e($m['meeting_date']) ?></td>
                 <td><?= e($m['location']) ?></td>
                 <td><?= statusBadge($m['status']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($m['created_by_photo'] ?? null, $m['created_by_name']) ?> <?= e($m['created_by_name']) ?></td>
                 <?php if ($isStaff): ?>
                     <td>
                         <a class="btn" href="<?= e(APP_URL) ?>/modules/meetings/index.php?manage=<?= e((string) $m['id']) ?>">Manage</a>
@@ -163,7 +164,7 @@ require __DIR__ . '/../../includes/header.php';
             </tr>
         <?php endforeach; ?>
         <?php if (!$meetings): ?>
-            <tr><td colspan="<?= $isStaff ? 5 : 4 ?>">No meetings scheduled yet.</td></tr>
+            <tr><td colspan="<?= $isStaff ? 6 : 5 ?>">No meetings scheduled yet.</td></tr>
         <?php endif; ?>
         </tbody>
     </table>
@@ -219,7 +220,7 @@ require __DIR__ . '/../../includes/header.php';
                     <?php foreach ($members as $m): ?>
                         <?php $current = $attendanceMap[$m['id']] ?? 'present'; ?>
                         <tr>
-                            <td><?= e($m['member_number'] . ' - ' . $m['full_name']) ?></td>
+                            <td class="flex items-center gap-2"><?= avatarHtml($m['photo_path'] ?? null, $m['full_name']) ?> <?= e($m['member_number'] . ' - ' . $m['full_name']) ?></td>
                             <?php foreach (['present', 'absent', 'excused'] as $opt): ?>
                                 <td class="text-center">
                                     <input type="radio" name="attendance[<?= e((string) $m['id']) ?>]" value="<?= e($opt) ?>" <?= $current === $opt ? 'checked' : '' ?>>

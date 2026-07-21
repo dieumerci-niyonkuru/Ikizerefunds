@@ -260,7 +260,7 @@ const GUARANTOR_COUNT_SQL = "(SELECT COUNT(*) FROM loan_guarantors WHERE loan_gu
 
 if ($isStaff) {
     $pendingLoans = db()->query(
-        "SELECT loans.*, users.full_name, members.member_number, loan_types.name AS loan_type_name,
+        "SELECT loans.*, users.full_name, users.photo_path, members.member_number, loan_types.name AS loan_type_name,
                 " . GUARANTOR_COUNT_SQL . "
          FROM loans
          JOIN members ON members.id = loans.member_id
@@ -271,7 +271,7 @@ if ($isStaff) {
     )->fetchAll();
 
     $activeLoans = db()->query(
-        "SELECT loans.*, users.full_name, members.member_number,
+        "SELECT loans.*, users.full_name, users.photo_path, members.member_number,
                 COALESCE((SELECT SUM(amount) FROM loan_payments WHERE loan_payments.loan_id = loans.id), 0) AS paid_so_far
          FROM loans
          JOIN members ON members.id = loans.member_id
@@ -281,7 +281,7 @@ if ($isStaff) {
     )->fetchAll();
 
     $allLoans = db()->query(
-        "SELECT loans.*, users.full_name, members.member_number,
+        "SELECT loans.*, users.full_name, users.photo_path, members.member_number,
                 " . GUARANTOR_COUNT_SQL . "
          FROM loans
          JOIN members ON members.id = loans.member_id
@@ -314,7 +314,7 @@ if ($isStaff) {
     $guarantorRequests = db()->prepare(
         "SELECT loan_guarantors.id, loan_guarantors.amount_guaranteed, loan_guarantors.status,
                 loans.id AS loan_id, loans.amount AS loan_amount, loans.status AS loan_status,
-                loan_types.name AS loan_type_name, users.full_name AS applicant_name, members.member_number AS applicant_number
+                loan_types.name AS loan_type_name, users.full_name AS applicant_name, users.photo_path AS applicant_photo, members.member_number AS applicant_number
          FROM loan_guarantors
          JOIN loans ON loans.id = loan_guarantors.loan_id
          JOIN loan_types ON loan_types.id = loans.loan_type_id
@@ -436,7 +436,7 @@ require __DIR__ . '/../../includes/header.php';
             <tbody>
             <?php foreach ($guarantorRequests as $g): ?>
                 <tr>
-                    <td><?= e($g['applicant_number'] . ' - ' . $g['applicant_name']) ?></td>
+                    <td class="flex items-center gap-2"><?= avatarHtml($g['applicant_photo'] ?? null, $g['applicant_name']) ?> <?= e($g['applicant_number'] . ' - ' . $g['applicant_name']) ?></td>
                     <td><?= e($g['loan_type_name']) ?></td>
                     <td><?= formatMoney((float) $g['loan_amount']) ?></td>
                     <td><?= formatMoney((float) $g['amount_guaranteed']) ?></td>
@@ -485,7 +485,7 @@ require __DIR__ . '/../../includes/header.php';
             <tbody>
             <?php foreach ($pendingLoans as $l): ?>
                 <tr>
-                    <td><?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
+                    <td class="flex items-center gap-2"><?= avatarHtml($l['photo_path'] ?? null, $l['full_name']) ?> <?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
                     <td><?= e($l['loan_type_name']) ?></td>
                     <td><?= formatMoney((float) $l['amount']) ?></td>
                     <td><?= formatMoney((float) $l['total_payable']) ?></td>
@@ -571,7 +571,7 @@ require __DIR__ . '/../../includes/header.php';
             <tbody>
             <?php foreach ($allLoans as $l): ?>
                 <tr>
-                    <td><?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
+                    <td class="flex items-center gap-2"><?= avatarHtml($l['photo_path'] ?? null, $l['full_name']) ?> <?= e($l['member_number'] . ' - ' . $l['full_name']) ?></td>
                     <td><?= formatMoney((float) $l['amount']) ?></td>
                     <td><?= formatMoney((float) $l['total_payable']) ?></td>
                     <td><?= statusBadge($l['status']) ?></td>

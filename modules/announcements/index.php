@@ -65,7 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 }
 
 $announcements = db()->query(
-    'SELECT id, title, content, posted_at, is_published FROM announcements ORDER BY posted_at DESC'
+    'SELECT announcements.id, announcements.title, announcements.content, announcements.posted_at, announcements.is_published,
+            users.full_name AS posted_by_name, users.photo_path AS posted_by_photo
+     FROM announcements
+     LEFT JOIN users ON users.id = announcements.posted_by
+     ORDER BY announcements.posted_at DESC'
 )->fetchAll();
 
 $editAnnouncement = null;
@@ -84,11 +88,12 @@ require __DIR__ . '/../../includes/header.php';
     <h1>Announcements</h1>
     <div class="table-wrap">
     <table>
-        <thead><tr><th>Title</th><th>Posted</th><th>Published</th><th></th></tr></thead>
+        <thead><tr><th>Title</th><th>Posted By</th><th>Posted</th><th>Published</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($announcements as $a): ?>
             <tr>
                 <td><?= e($a['title']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($a['posted_by_photo'] ?? null, $a['posted_by_name'] ?? 'Unknown') ?> <?= e($a['posted_by_name'] ?? 'Unknown') ?></td>
                 <td><?= e($a['posted_at']) ?></td>
                 <td><?= statusBadge($a['is_published'] ? 'published' : 'pending') ?></td>
                 <td>
@@ -109,7 +114,7 @@ require __DIR__ . '/../../includes/header.php';
             </tr>
         <?php endforeach; ?>
         <?php if (!$announcements): ?>
-            <tr><td colspan="4">No announcements yet.</td></tr>
+            <tr><td colspan="5">No announcements yet.</td></tr>
         <?php endif; ?>
         </tbody>
     </table>

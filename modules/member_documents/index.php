@@ -70,14 +70,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
 }
 
 $members = db()->query(
-    'SELECT members.id, members.member_number, users.full_name
+    'SELECT members.id, members.member_number, users.full_name, users.photo_path
      FROM members JOIN users ON users.id = members.user_id
      ORDER BY users.full_name'
 )->fetchAll();
 
 $documents = db()->query(
-    "SELECT member_documents.*, users.full_name AS uploaded_by_name,
-            members.member_number, member_users.full_name AS member_name
+    "SELECT member_documents.*, users.full_name AS uploaded_by_name, users.photo_path AS uploaded_by_photo,
+            members.member_number, member_users.full_name AS member_name, member_users.photo_path AS member_photo
      FROM member_documents
      JOIN users ON users.id = member_documents.uploaded_by
      JOIN members ON members.id = member_documents.member_id
@@ -127,9 +127,9 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach ($documents as $d): ?>
             <tr>
-                <td><?= e($d['member_number'] . ' - ' . $d['member_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($d['member_photo'] ?? null, $d['member_name']) ?> <?= e($d['member_number'] . ' - ' . $d['member_name']) ?></td>
                 <td><?= e(str_replace('_', ' ', ucfirst($d['document_type']))) ?></td>
-                <td><?= e($d['uploaded_by_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($d['uploaded_by_photo'] ?? null, $d['uploaded_by_name']) ?> <?= e($d['uploaded_by_name']) ?></td>
                 <td><?= e($d['uploaded_at']) ?></td>
                 <td>
                     <a class="btn" href="<?= e(APP_URL) ?>/<?= e($d['file_path']) ?>" target="_blank" rel="noopener">Download</a>

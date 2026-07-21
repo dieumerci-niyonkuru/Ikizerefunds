@@ -61,6 +61,10 @@ if ($currentFile === '' || $currentFile === '/') {
             .public-nav-link.active { @apply bg-white/15 text-white font-semibold; }
             .public-nav-toggle { @apply inline-block md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer; }
             .public-nav-panel { @apply md:hidden absolute top-[60px] left-0 right-0 bg-primary-dark shadow-lg z-30 flex flex-col p-2; }
+            .nav-dropdown { @apply relative; }
+            .nav-dropdown-menu { @apply absolute top-full left-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[180px] hidden z-40; }
+            .nav-dropdown:hover .nav-dropdown-menu { @apply block; }
+            .nav-dropdown-link { @apply block px-4 py-2 text-sm text-gray-700 no-underline hover:bg-primary-light; }
 
             /* App shell */
             .app-shell { @apply flex min-h-[calc(100vh-60px)]; }
@@ -191,7 +195,24 @@ if ($currentFile === '' || $currentFile === '/') {
     <?php else: ?>
         <nav class="public-nav-links">
             <?php foreach ($publicNavItems as $item): ?>
-                <a class="public-nav-link<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?></a>
+                <?php if (!empty($item['children'])): ?>
+                    <?php
+                    $isActive = false;
+                    foreach ($item['children'] as $child) {
+                        if ($currentFile === $child['href']) { $isActive = true; break; }
+                    }
+                    ?>
+                    <div class="nav-dropdown">
+                        <a class="public-nav-link<?= $isActive ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?> &#9662;</a>
+                        <div class="nav-dropdown-menu">
+                            <?php foreach ($item['children'] as $child): ?>
+                                <a class="nav-dropdown-link<?= $currentFile === $child['href'] ? ' font-semibold bg-primary-light' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>"><?= e($child['label']) ?></a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <a class="public-nav-link<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?></a>
+                <?php endif; ?>
             <?php endforeach; ?>
         </nav>
         <div class="flex items-center gap-2">
@@ -200,7 +221,16 @@ if ($currentFile === '' || $currentFile === '/') {
         </div>
         <div class="public-nav-panel hidden" id="public-nav-panel">
             <?php foreach ($publicNavItems as $item): ?>
-                <a class="public-nav-link<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?></a>
+                <?php if (!empty($item['children'])): ?>
+                    <div class="border-b border-white/10 pb-1 mb-1">
+                        <div class="public-nav-link font-semibold text-white/60 cursor-default"><?= e($item['label']) ?></div>
+                        <?php foreach ($item['children'] as $child): ?>
+                            <a class="public-nav-link pl-6<?= $currentFile === $child['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>"><?= e($child['label']) ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <a class="public-nav-link<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?></a>
+                <?php endif; ?>
             <?php endforeach; ?>
             <a class="public-nav-link" href="<?= e(APP_URL) ?>/login.php">Login</a>
         </div>

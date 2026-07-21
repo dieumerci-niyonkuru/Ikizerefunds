@@ -327,7 +327,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <?php if ($user['role_name'] === 'president'):
     $allUsersStmt = db()->query(
-        "SELECT id, full_name, username, role_name, status FROM users ORDER BY id"
+        "SELECT id, full_name, username, role_name, photo_path, status FROM users ORDER BY id"
     );
     $allUsers = $allUsersStmt->fetchAll();
 ?>
@@ -339,7 +339,7 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach ($allUsers as $u): ?>
             <tr>
-                <td><?= e($u['full_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($u['photo_path'] ?? null, $u['full_name']) ?> <?= e($u['full_name']) ?></td>
                 <td><?= e($u['username']) ?></td>
                 <td><?= e(str_replace('_', ' ', ucfirst($u['role_name']))) ?></td>
                 <td><?= statusBadge($u['status']) ?></td>

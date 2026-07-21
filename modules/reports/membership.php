@@ -8,7 +8,7 @@ $user = currentUser();
 
 $members = db()->query(
     "SELECT members.member_number, members.join_date, members.membership_status,
-            users.full_name, users.phone,
+            users.full_name, users.phone, users.photo_path,
             COALESCE((SELECT SUM(CASE WHEN transaction_type = 'deposit' THEN amount ELSE -amount END)
                       FROM savings WHERE savings.member_id = members.id), 0) AS savings_balance,
             (SELECT COUNT(*) FROM loans WHERE loans.member_id = members.id AND loans.status = 'active') AS active_loans
@@ -42,7 +42,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php foreach ($members as $m): ?>
             <tr>
                 <td><?= e($m['member_number']) ?></td>
-                <td><?= e($m['full_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($m['photo_path'] ?? null, $m['full_name']) ?> <?= e($m['full_name']) ?></td>
                 <td><?= e($m['phone']) ?></td>
                 <td><?= e($m['join_date']) ?></td>
                 <td><?= statusBadge($m['membership_status']) ?></td>

@@ -71,7 +71,7 @@ if ($canManage && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? 
 }
 
 $documents = db()->query(
-    "SELECT documents.*, users.full_name AS uploaded_by_name
+    "SELECT documents.*, users.full_name AS uploaded_by_name, users.photo_path AS uploaded_by_photo
      FROM documents
      JOIN users ON users.id = documents.uploaded_by
      ORDER BY documents.uploaded_at DESC"
@@ -119,7 +119,7 @@ require __DIR__ . '/../../includes/header.php';
             <tr>
                 <td><?= e($d['title']) ?></td>
                 <td><?= e(str_replace('_', ' ', ucfirst($d['category']))) ?></td>
-                <td><?= e($d['uploaded_by_name']) ?></td>
+                <td class="flex items-center gap-2"><?= avatarHtml($d['uploaded_by_photo'] ?? null, $d['uploaded_by_name']) ?> <?= e($d['uploaded_by_name']) ?></td>
                 <td><?= e($d['uploaded_at']) ?></td>
                 <td>
                     <a class="btn" href="<?= e(APP_URL) ?>/<?= e($d['file_path']) ?>" target="_blank" rel="noopener">Download</a>

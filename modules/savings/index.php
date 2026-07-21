@@ -70,12 +70,12 @@ $savingTypes = db()->query('SELECT id, name FROM saving_types ORDER BY name')->f
 if ($canRecord) {
     // Staff view: every member's running balance + the full transaction log.
     $balances = db()->query(
-        "SELECT members.id, members.member_number, users.full_name,
+        "SELECT members.id, members.member_number, users.full_name, users.photo_path,
                 COALESCE(SUM(CASE WHEN savings.transaction_type = 'deposit' THEN savings.amount ELSE -savings.amount END), 0) AS balance
          FROM members
          JOIN users ON users.id = members.user_id
          LEFT JOIN savings ON savings.member_id = members.id
-         GROUP BY members.id, members.member_number, users.full_name
+         GROUP BY members.id, members.member_number, users.full_name, users.photo_path
          ORDER BY users.full_name"
     )->fetchAll();
 
@@ -86,7 +86,7 @@ if ($canRecord) {
     )->fetchAll();
 
     $transactions = db()->query(
-        "SELECT savings.*, saving_types.name AS saving_type_name, users.full_name AS member_name
+        "SELECT savings.*, saving_types.name AS saving_type_name, users.full_name AS member_name, users.photo_path AS member_photo
          FROM savings
          JOIN members ON members.id = savings.member_id
          JOIN users ON users.id = members.user_id
@@ -137,17 +137,16 @@ require __DIR__ . '/../../includes/header.php';
         <h2>Member Balances</h2>
         <div class="table-wrap">
         <table>
-            <thead><tr><th>Member #</th><th>Name</th><th>Balance</th></tr></thead>
+            <thead><tr><th>Member</th><th>Balance</th></tr></thead>
             <tbody>
             <?php foreach ($balances as $b): ?>
                 <tr>
-                    <td><?= e($b['member_number']) ?></td>
-                    <td><?= e($b['full_name']) ?></td>
+                    <td class="flex items-center gap-2"><?= avatarHtml($b['photo_path'] ?? null, $b['full_name']) ?> <?= e($b['member_number'] . ' - ' . $b['full_name']) ?></td>
                     <td><?= formatMoney((float) $b['balance']) ?></td>
                 </tr>
             <?php endforeach; ?>
             <?php if (!$balances): ?>
-                <tr><td colspan="3">No members yet.</td></tr>
+                <tr><td colspan="2">No members yet.</td></tr>
             <?php endif; ?>
             </tbody>
         </table>
@@ -251,7 +250,7 @@ require __DIR__ . '/../../includes/header.php';
         <tbody>
         <?php foreach (($canRecord ? $transactions : $myTransactions) as $t): ?>
             <tr>
-                <?php if ($canRecord): ?><td><?= e($t['member_name']) ?></td><?php endif; ?>
+                <?php if ($canRecord): ?><td class="flex items-center gap-2"><?= avatarHtml($t['member_photo'] ?? null, $t['member_name']) ?> <?= e($t['member_name']) ?></td><?php endif; ?>
                 <td><?= statusBadge($t['transaction_type']) ?></td>
                 <td><?= e($t['saving_type_name']) ?></td>
                 <td><?= formatMoney((float) $t['amount']) ?></td>
