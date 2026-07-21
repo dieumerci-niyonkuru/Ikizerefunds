@@ -50,7 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reque
 
 require __DIR__ . '/includes/header.php';
 ?>
-<div class="card auth-card">
+<div class="card auth-card text-center">
+    <?php if ($siteLogo): ?>
+        <img src="<?= e(APP_URL) ?>/<?= e($siteLogo) ?>" alt="" class="h-16 w-16 mx-auto mb-4 rounded-lg bg-white p-2 object-contain shadow-md border border-gray-200">
+    <?php endif; ?>
     <h2>Forgot Password</h2>
     <p class="text-gray-500 text-sm">This system doesn't send reset emails automatically. Submitting this
     logs a reset request that club leadership can act on &mdash; they'll set a new temporary password and

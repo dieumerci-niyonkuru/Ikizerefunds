@@ -51,8 +51,7 @@
                 </div>
                 <div class="flex items-center gap-2 text-sm text-gray-500">
                     <span>Developed by</span>
-                    <img src="<?= e(APP_URL) ?>/assets/images/logo.png" alt="DMN" class="h-6 w-6 rounded object-contain">
-                    <span class="font-bold text-primary">DMN</span>
+                    <span class="font-bold text-primary">Dieu Merci</span>
                 </div>
             </div>
         </div>
