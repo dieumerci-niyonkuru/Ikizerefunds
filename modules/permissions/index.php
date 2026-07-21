@@ -94,7 +94,7 @@ require __DIR__ . '/../../includes/header.php';
     <form method="post" action="">
         <?= csrfField() ?>
         <input type="hidden" name="action" value="save_matrix">
-        <div style="overflow-x:auto;">
+        <div class="table-wrap">
         <table>
             <thead>
             <tr>

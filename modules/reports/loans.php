@@ -52,6 +52,7 @@ require __DIR__ . '/../../includes/header.php';
     </div>
 
     <h2>Overdue Active Loans</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Member</th><th>Type</th><th>Balance</th><th>Due Date</th></tr></thead>
         <tbody>
@@ -68,8 +69,10 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 
     <h2>All Loans</h2>
+    <div class="table-wrap">
     <table>
         <thead>
         <tr><th>Member</th><th>Type</th><th>Amount</th><th>Total Payable</th><th>Paid</th><th>Status</th><th>Applied</th><th>Due</th></tr>
@@ -92,5 +95,6 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

@@ -33,6 +33,7 @@ require __DIR__ . '/../../includes/header.php';
         <div class="stat"><div class="label">Total Savings Held</div><div class="value"><?= formatMoney($totalSavings) ?></div></div>
     </div>
 
+    <div class="table-wrap">
     <table>
         <thead>
         <tr><th>Member #</th><th>Name</th><th>Phone</th><th>Joined</th><th>Status</th><th>Savings Balance</th><th>Active Loans</th></tr>
@@ -54,5 +55,6 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

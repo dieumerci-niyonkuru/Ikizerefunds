@@ -37,6 +37,7 @@ require __DIR__ . '/../../includes/header.php';
 </div>
 
 <div class="card">
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Name</th><th>Contact</th><th>Message</th><th>Status</th><th>Date</th><th></th></tr></thead>
         <tbody>
@@ -84,5 +85,6 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

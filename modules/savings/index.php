@@ -135,6 +135,7 @@ require __DIR__ . '/../../includes/header.php';
 
     <?php if ($canRecord): ?>
         <h2>Member Balances</h2>
+        <div class="table-wrap">
         <table>
             <thead><tr><th>Member #</th><th>Name</th><th>Balance</th></tr></thead>
             <tbody>
@@ -150,6 +151,7 @@ require __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     <?php else: ?>
         <h2>My Balance: <?= formatMoney((float) $myBalance) ?></h2>
     <?php endif; ?>
@@ -237,6 +239,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2><?= $canRecord ? 'Recent Transactions' : 'My Transaction History' ?></h2>
+    <div class="table-wrap">
     <table>
         <thead>
         <tr>
@@ -272,5 +275,6 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

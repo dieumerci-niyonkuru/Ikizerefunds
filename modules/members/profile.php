@@ -333,6 +333,7 @@ require __DIR__ . '/../../includes/header.php';
 ?>
 <div class="card">
     <h2>Manage User Accounts (President Only)</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr></thead>
         <tbody>
@@ -358,12 +359,14 @@ require __DIR__ . '/../../includes/header.php';
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 
 <?php if ($member): ?>
 <div class="card">
     <h2>Next of Kin</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Name</th><th>Relationship</th><th>Phone</th><th>Address</th></tr></thead>
         <tbody>
@@ -380,6 +383,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div class="card max-w-lg">
@@ -406,6 +410,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2>My Documents</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Type</th><th>Uploaded</th><th></th></tr></thead>
         <tbody>
@@ -421,6 +426,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div class="card max-w-lg">

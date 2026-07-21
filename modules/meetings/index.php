@@ -139,6 +139,7 @@ require __DIR__ . '/../../includes/header.php';
 ?>
 <div class="card">
     <h1>Meetings</h1>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Status</th><?php if ($isStaff): ?><th>Action</th><?php endif; ?></tr></thead>
         <tbody>
@@ -166,6 +167,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($isStaff): ?>
@@ -210,6 +212,7 @@ require __DIR__ . '/../../includes/header.php';
                 <textarea id="minutes" name="minutes" rows="5"><?= e($manageMeeting['minutes']) ?></textarea>
 
                 <h3>Attendance</h3>
+                <div class="table-wrap">
                 <table>
                     <thead><tr><th>Member</th><th>Present</th><th>Absent</th><th>Excused</th></tr></thead>
                     <tbody>
@@ -229,6 +232,7 @@ require __DIR__ . '/../../includes/header.php';
                     <?php endif; ?>
                     </tbody>
                 </table>
+                </div>
 
                 <button type="submit" class="mt-4">Save Meeting Details</button>
             </form>
@@ -238,6 +242,7 @@ require __DIR__ . '/../../includes/header.php';
 <?php else: ?>
     <div class="card">
         <h2>My Attendance History</h2>
+        <div class="table-wrap">
         <table>
             <thead><tr><th>Meeting</th><th>Date</th><th>My Status</th></tr></thead>
             <tbody>

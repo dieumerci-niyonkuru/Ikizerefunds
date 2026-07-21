@@ -171,6 +171,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2>Term History</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Name</th><th>Role</th><th>Start Date</th><th>End Date</th><th></th></tr></thead>
         <tbody>
@@ -197,5 +198,6 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>

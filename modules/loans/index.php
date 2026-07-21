@@ -399,6 +399,7 @@ require __DIR__ . '/../../includes/header.php';
 
     <div class="card">
         <h2>My Loans</h2>
+        <div class="table-wrap">
         <table>
             <thead><tr><th>Type</th><th>Amount</th><th>Total Payable</th><th>Paid</th><th>Status</th><th>Due Date</th><th>Guarantors</th></tr></thead>
             <tbody>
@@ -418,6 +419,7 @@ require __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
     <div class="card">
@@ -428,6 +430,7 @@ require __DIR__ . '/../../includes/header.php';
             can't repay it &mdash; only accept if you're genuinely willing to do that. <strong>Declining</strong>
             simply removes you from their application with no consequence to you.
         </p>
+        <div class="table-wrap">
         <table>
             <thead><tr><th>Applicant</th><th>Loan Type</th><th>Loan Amount</th><th>Amount Requested</th><th>Status</th><th></th></tr></thead>
             <tbody>
@@ -463,6 +466,7 @@ require __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
 <?php else: ?>
@@ -475,6 +479,7 @@ require __DIR__ . '/../../includes/header.php';
             guarantors have accepted so far (e.g. "1/2 accepted"). It's informational, not a hard
             requirement &mdash; use your judgment alongside it when approving or rejecting.
         </p>
+        <div class="table-wrap">
         <table>
             <thead><tr><th>Member</th><th>Type</th><th>Amount</th><th>Total Payable</th><th>Term</th><th>Applied</th><th>Guarantors</th><th>Action</th></tr></thead>
             <tbody>
@@ -516,6 +521,7 @@ require __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -559,6 +565,7 @@ require __DIR__ . '/../../includes/header.php';
 
     <div class="card">
         <h2>All Loans</h2>
+        <div class="table-wrap">
         <table>
             <thead><tr><th>Member</th><th>Amount</th><th>Total Payable</th><th>Status</th><th>Applied</th><th>Due</th><th>Guarantors</th><th></th></tr></thead>
             <tbody>
@@ -588,6 +595,7 @@ require __DIR__ . '/../../includes/header.php';
             <?php endif; ?>
             </tbody>
         </table>
+        </div>
     </div>
 
 <?php endif; ?>

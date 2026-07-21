@@ -205,6 +205,7 @@ require __DIR__ . '/../../includes/header.php';
             <a class="btn btn-plain" style="color:#6b7280;" href="<?= e(APP_URL) ?>/modules/members/index.php">Clear</a>
         <?php endif; ?>
     </form>
+    <div class="table-wrap">
     <table>
         <thead>
         <tr><th></th><th>#</th><th>Name</th><th>Username</th><th>Phone</th><th>Joined</th><th>Status</th><th></th></tr>
@@ -237,6 +238,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($editMember): ?>

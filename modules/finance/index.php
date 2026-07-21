@@ -269,6 +269,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2>Fines</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Member</th><th>Reason</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>
@@ -311,6 +312,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($editFine): ?>
@@ -334,6 +336,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2>Recent Expenses</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Category</th><th>Description</th><th>Amount</th><th>Date</th><th></th></tr></thead>
         <tbody>
@@ -359,6 +362,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($editExpense): ?>
@@ -384,6 +388,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2>Recent Other Income</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Source</th><th>Description</th><th>Amount</th><th>Date</th><th></th></tr></thead>
         <tbody>
@@ -409,6 +414,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($editIncome): ?>

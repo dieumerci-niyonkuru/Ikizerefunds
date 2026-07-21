@@ -82,6 +82,7 @@ require __DIR__ . '/../../includes/header.php';
 ?>
 <div class="card">
     <h1>Announcements</h1>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Title</th><th>Posted</th><th>Published</th><th></th></tr></thead>
         <tbody>
@@ -112,6 +113,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($editAnnouncement): ?>

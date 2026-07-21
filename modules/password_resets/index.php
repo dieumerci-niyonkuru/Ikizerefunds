@@ -57,6 +57,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2>Pending Requests</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Username</th><th>Name</th><th>Requested</th><th>Expires</th><th></th></tr></thead>
         <tbody>
@@ -82,6 +83,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div class="card max-w-lg">

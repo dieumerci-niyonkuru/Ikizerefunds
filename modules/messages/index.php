@@ -128,6 +128,7 @@ require __DIR__ . '/../../includes/header.php';
 
 <div class="card">
     <h2><?= $isLeadership ? 'Member Messages' : 'My Messages' ?></h2>
+    <div class="table-wrap">
     <table>
         <thead>
         <tr>
@@ -150,11 +151,13 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 
 <?php if ($isLeadership): ?>
 <div class="card">
     <h2>Leadership Channel <span class="text-gray-500 text-sm">(only visible to leadership)</span></h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>From</th><th>Subject</th><th>Replies</th><th>Date</th><th></th></tr></thead>
         <tbody>
@@ -172,6 +175,7 @@ require __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 <?php require __DIR__ . '/../../includes/footer.php'; ?>
