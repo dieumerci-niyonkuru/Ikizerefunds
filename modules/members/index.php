@@ -223,11 +223,11 @@ require __DIR__ . '/../../includes/header.php';
                     <?php if ($canEdit): ?>
                         <a class="btn" href="<?= e(APP_URL) ?>/modules/members/index.php?edit=<?= e((string) $m['id']) ?>">Edit</a>
                     <?php endif; ?>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_member">
                         <input type="hidden" name="member_id" value="<?= e((string) $m['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
             </tr>

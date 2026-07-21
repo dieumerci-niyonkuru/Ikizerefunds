@@ -53,11 +53,11 @@ require __DIR__ . '/../../includes/header.php';
                             <button type="submit">Mark Reviewed</button>
                         </form>
                     <?php endif; ?>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_feedback">
                         <input type="hidden" name="feedback_id" value="<?= e((string) $f['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
             </tr>

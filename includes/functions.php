@@ -63,6 +63,18 @@ function formatMoney(float $amount): string
     return number_format($amount, 2);
 }
 
+// Writes an entry to the audit_log table for tracking sensitive actions.
+function auditLog(int $userId, string $action, string $targetTable, ?int $targetId = null, ?string $details = null): void
+{
+    try {
+        db()->prepare(
+            'INSERT INTO audit_log (user_id, action, target_table, target_id, details) VALUES (?, ?, ?, ?, ?)'
+        )->execute([$userId, $action, $targetTable, $targetId, $details]);
+    } catch (PDOException $e) {
+        // Silently fail — audit logging should never break the main action
+    }
+}
+
 // Renders a status value as a colored pill, e.g. "active" -> green badge.
 function statusBadge(?string $status): string
 {

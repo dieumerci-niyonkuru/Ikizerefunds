@@ -502,11 +502,11 @@ require __DIR__ . '/../../includes/header.php';
                             <input type="hidden" name="decision" value="reject">
                             <button type="submit">Reject</button>
                         </form>
-                        <form method="post" style="display:inline-block">
+                        <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                             <?= csrfField() ?>
                             <input type="hidden" name="action" value="delete_loan">
                             <input type="hidden" name="loan_id" value="<?= e((string) $l['id']) ?>">
-                            <button type="submit">Delete</button>
+                            <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -573,11 +573,11 @@ require __DIR__ . '/../../includes/header.php';
                     <td><?= $l['guarantor_count'] > 0 ? e($l['guarantor_accepted_count'] . '/' . $l['guarantor_count'] . ' accepted') : '&mdash;' ?></td>
                     <td>
                         <?php if ($l['status'] === 'rejected'): ?>
-                            <form method="post" style="display:inline-block">
+                            <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                                 <?= csrfField() ?>
                                 <input type="hidden" name="action" value="delete_loan">
                                 <input type="hidden" name="loan_id" value="<?= e((string) $l['id']) ?>">
-                                <button type="submit">Delete</button>
+                                <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                             </form>
                         <?php endif; ?>
                     </td>

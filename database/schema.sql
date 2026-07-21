@@ -534,4 +534,5 @@ INSERT INTO notification_templates (type, subject, body) VALUES
   ('loan_approval', 'Loan Approved', 'Dear {{name}}, your loan application of {{amount}} has been approved. Total payable: {{total_payable}}, due by {{due_date}}.'),
   ('payment_due', 'Loan Payment Due', 'Dear {{name}}, your loan installment of {{amount}} is due on {{due_date}}. Please make your payment on time to avoid penalties.'),
   ('meeting_reminder', 'Upcoming Meeting', 'Dear {{name}}, reminder: "{{title}}" is scheduled on {{meeting_date}} at {{location}}.'),
-  ('late_payment', 'Late Payment Alert', 'Dear {{name}}, your loan installment of {{amount}} due on {{due_date}} is now overdue. A penalty may apply.');
+  ('late_payment', 'Late Payment Alert', 'Dear {{name}}, your loan installment of {{amount}} due on {{due_date}} is now overdue. A penalty may apply.'),
+  ('password_reset_request', 'Password Reset Request', '{{username}} ({{name}}) has requested a password reset. Please set a new temporary password for them via the Password Resets page.');

@@ -70,11 +70,11 @@ require __DIR__ . '/../../includes/header.php';
                     <?php if ($r['status'] === 'approved'): ?>
                         <a class="btn" href="<?= e(APP_URL) ?>/modules/members/index.php?prefill_name=<?= urlencode($r['full_name']) ?>&prefill_email=<?= urlencode((string) $r['email']) ?>&prefill_phone=<?= urlencode((string) $r['phone']) ?>">Register as Member</a>
                     <?php endif; ?>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_request">
                         <input type="hidden" name="request_id" value="<?= e((string) $r['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
             </tr>

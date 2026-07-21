@@ -7,11 +7,15 @@ requireLogin();
 $user = currentUser();
 
 $stmt = db()->prepare(
-    'SELECT type, channel, message, status, created_at, sent_at
+    'SELECT id, type, channel, message, status, created_at, sent_at
      FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 100'
 );
 $stmt->execute([$user['id']]);
 $notifications = $stmt->fetchAll();
+
+// Mark all pending notifications as "read"
+db()->prepare("UPDATE notifications SET status = 'read' WHERE user_id = ? AND status = 'pending'")
+    ->execute([$user['id']]);
 
 $notificationIcons = [
     'saving_reminder' => '&#128176;',

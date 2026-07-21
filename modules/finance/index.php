@@ -297,11 +297,11 @@ require __DIR__ . '/../../includes/header.php';
                         </form>
                     <?php endif; ?>
                     <a class="btn" href="<?= e(APP_URL) ?>/modules/finance/index.php?edit_fine=<?= e((string) $f['id']) ?>">Edit</a>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_fine">
                         <input type="hidden" name="fine_id" value="<?= e((string) $f['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
             </tr>
@@ -345,11 +345,11 @@ require __DIR__ . '/../../includes/header.php';
                 <td><?= e($e['expense_date']) ?></td>
                 <td>
                     <a class="btn" href="<?= e(APP_URL) ?>/modules/finance/index.php?edit_expense=<?= e((string) $e['id']) ?>">Edit</a>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_expense">
                         <input type="hidden" name="expense_id" value="<?= e((string) $e['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
             </tr>
@@ -395,11 +395,11 @@ require __DIR__ . '/../../includes/header.php';
                 <td><?= e($i['income_date']) ?></td>
                 <td>
                     <a class="btn" href="<?= e(APP_URL) ?>/modules/finance/index.php?edit_income=<?= e((string) $i['id']) ?>">Edit</a>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_income">
                         <input type="hidden" name="income_id" value="<?= e((string) $i['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
             </tr>

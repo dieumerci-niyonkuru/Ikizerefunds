@@ -257,11 +257,11 @@ require __DIR__ . '/../../includes/header.php';
                 <?php if ($canRecord): ?>
                 <td>
                     <a class="btn" href="<?= e(APP_URL) ?>/modules/savings/index.php?edit=<?= e((string) $t['id']) ?>">Edit</a>
-                    <form method="post" style="display:inline-block">
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                         <?= csrfField() ?>
                         <input type="hidden" name="action" value="delete_saving">
                         <input type="hidden" name="saving_id" value="<?= e((string) $t['id']) ?>">
-                        <button type="submit">Delete</button>
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                     </form>
                 </td>
                 <?php endif; ?>

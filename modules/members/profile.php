@@ -134,6 +134,87 @@ if ($member && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '')
     redirect('modules/members/profile.php');
 }
 
+// ------------------------------------------------------------
+// Change password (all logged-in users)
+// ------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'change_password') {
+    verifyCsrf();
+    $currentPassword = $_POST['current_password'] ?? '';
+    $newPassword     = $_POST['new_password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+
+    // Fetch current hash
+    $hashStmt = db()->prepare('SELECT password_hash FROM users WHERE id = ?');
+    $hashStmt->execute([$user['id']]);
+    $currentHash = $hashStmt->fetchColumn();
+
+    if (!password_verify($currentPassword, $currentHash)) {
+        setFlash('error', 'Current password is incorrect.');
+    } elseif (strlen($newPassword) < 6) {
+        setFlash('error', 'New password must be at least 6 characters.');
+    } elseif ($newPassword !== $confirmPassword) {
+        setFlash('error', 'New password and confirmation do not match.');
+    } else {
+        db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+            ->execute([password_hash($newPassword, PASSWORD_DEFAULT), $user['id']]);
+        setFlash('success', 'Password changed successfully.');
+    }
+    redirect('modules/members/profile.php');
+}
+
+// ------------------------------------------------------------
+// Delete a user account (president only)
+// ------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_user') {
+    verifyCsrf();
+    $targetId = (int) ($_POST['target_user_id'] ?? 0);
+
+    if ($user['role_name'] !== 'president') {
+        setFlash('error', 'Only the president can delete user accounts.');
+    } elseif ($targetId === $user['id']) {
+        setFlash('error', 'You cannot delete your own account.');
+    } else {
+        $targetStmt = db()->prepare('SELECT id, role_id FROM users WHERE id = ?');
+        $targetStmt->execute([$targetId]);
+        $target = $targetStmt->fetch();
+
+        if (!$target) {
+            setFlash('error', 'User not found.');
+        } else {
+            // Check if they are a member with active loans
+            $memberStmt = db()->prepare('SELECT id FROM members WHERE user_id = ?');
+            $memberStmt->execute([$targetId]);
+            $memberId = $memberStmt->fetchColumn();
+
+            $hasActiveLoan = false;
+            if ($memberId) {
+                $loanStmt = db()->prepare("SELECT id FROM loans WHERE member_id = ? AND status = 'active'");
+                $loanStmt->execute([$memberId]);
+                $hasActiveLoan = (bool) $loanStmt->fetch();
+            }
+
+            if ($hasActiveLoan) {
+                setFlash('error', 'Cannot delete: this user has an active loan. Settle it first.');
+            } else {
+                $pdo = db();
+                $pdo->beginTransaction();
+                try {
+                    if ($memberId) {
+                        $pdo->prepare('DELETE FROM members WHERE id = ?')->execute([$memberId]);
+                    }
+                    $pdo->prepare("UPDATE users SET status = 'inactive' WHERE id = ?")->execute([$targetId]);
+                    $pdo->commit();
+                    setFlash('success', 'User account deleted.');
+                } catch (PDOException $ex) {
+                    $pdo->rollBack();
+                    setFlash('error', 'Could not delete user: they may have related records.');
+                }
+            }
+        }
+    }
+    redirect('modules/members/profile.php');
+}
+
 $nextOfKin = [];
 $myDocuments = [];
 if ($member) {
@@ -224,6 +305,61 @@ require __DIR__ . '/../../includes/header.php';
         </form>
     </div>
 </div>
+
+<div class="card max-w-lg">
+    <h2>Change Password</h2>
+    <form method="post" action="">
+        <?= csrfField() ?>
+        <input type="hidden" name="action" value="change_password">
+
+        <label for="current_password">Current Password</label>
+        <input type="password" id="current_password" name="current_password" required>
+
+        <label for="new_password">New Password</label>
+        <input type="password" id="new_password" name="new_password" minlength="6" required>
+
+        <label for="confirm_password">Confirm New Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" minlength="6" required>
+
+        <button type="submit">Change Password</button>
+    </form>
+</div>
+
+<?php if ($user['role_name'] === 'president'):
+    $allUsersStmt = db()->query(
+        "SELECT id, full_name, username, role_name, status FROM users ORDER BY id"
+    );
+    $allUsers = $allUsersStmt->fetchAll();
+?>
+<div class="card">
+    <h2>Manage User Accounts (President Only)</h2>
+    <table>
+        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        <?php foreach ($allUsers as $u): ?>
+            <tr>
+                <td><?= e($u['full_name']) ?></td>
+                <td><?= e($u['username']) ?></td>
+                <td><?= e(str_replace('_', ' ', ucfirst($u['role_name']))) ?></td>
+                <td><?= statusBadge($u['status']) ?></td>
+                <td>
+                    <?php if ((int) $u['id'] !== $user['id']): ?>
+                    <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure you want to delete <?= e($u['full_name']) ?>? This cannot be undone.')">
+                        <?= csrfField() ?>
+                        <input type="hidden" name="action" value="delete_user">
+                        <input type="hidden" name="target_user_id" value="<?= e((string) $u['id']) ?>">
+                        <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
+                    </form>
+                    <?php else: ?>
+                        <span class="text-gray-400 text-sm">You</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+<?php endif; ?>
 
 <?php if ($member): ?>
 <div class="card">

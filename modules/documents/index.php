@@ -123,11 +123,11 @@ require __DIR__ . '/../../includes/header.php';
                 <td>
                     <a class="btn" href="<?= e(APP_URL) ?>/<?= e($d['file_path']) ?>" target="_blank" rel="noopener">Download</a>
                     <?php if ($canManage): ?>
-                        <form method="post" style="display:inline-block">
+                        <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                             <?= csrfField() ?>
                             <input type="hidden" name="action" value="delete_document">
                             <input type="hidden" name="document_id" value="<?= e((string) $d['id']) ?>">
-                            <button type="submit">Delete</button>
+                            <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                         </form>
                     <?php endif; ?>
                 </td>

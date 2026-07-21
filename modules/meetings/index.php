@@ -151,11 +151,11 @@ require __DIR__ . '/../../includes/header.php';
                 <?php if ($isStaff): ?>
                     <td>
                         <a class="btn" href="<?= e(APP_URL) ?>/modules/meetings/index.php?manage=<?= e((string) $m['id']) ?>">Manage</a>
-                        <form method="post" style="display:inline-block">
+                        <form method="post" style="display:inline-block" onsubmit="return confirm('Are you sure? This cannot be undone.')">
                             <?= csrfField() ?>
                             <input type="hidden" name="action" value="delete_meeting">
                             <input type="hidden" name="meeting_id" value="<?= e((string) $m['id']) ?>">
-                            <button type="submit">Delete</button>
+                            <button type="submit" style="background:#dc2626;color:#fff;">Delete</button>
                         </form>
                     </td>
                 <?php endif; ?>

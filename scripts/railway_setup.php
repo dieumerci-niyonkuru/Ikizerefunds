@@ -175,4 +175,17 @@ if ($created > 0) {
     echo "[Railway Setup] All leadership accounts already exist.\n";
 }
 
+// ---- Ensure password_reset_request notification template exists ----
+$templateCheck = $pdo->prepare("SELECT COUNT(*) FROM notification_templates WHERE type = 'password_reset_request'");
+$templateCheck->execute();
+if ($templateCheck->fetchColumn() == 0) {
+    $pdo->prepare("INSERT INTO notification_templates (type, subject, body) VALUES (?, ?, ?)")
+        ->execute([
+            'password_reset_request',
+            'Password Reset Request',
+            '{{username}} ({{name}}) has requested a password reset. Please set a new temporary password for them via the Password Resets page.',
+        ]);
+    echo "[Railway Setup] Added password_reset_request notification template.\n";
+}
+
 echo "[Railway Setup] Done.\n";

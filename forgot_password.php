@@ -22,6 +22,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reque
                 'INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, NOW() + INTERVAL 1 DAY)'
             );
             $stmt->execute([$userId, $tokenHash]);
+
+            // Notify all leadership (president, vice_president, secretary) about this reset request
+            $targetUser = db()->prepare('SELECT full_name, username FROM users WHERE id = ?');
+            $targetUser->execute([$userId]);
+            $targetInfo = $targetUser->fetch();
+
+            $leaders = db()->query(
+                "SELECT users.id FROM users JOIN roles ON roles.id = users.role_id
+                 WHERE roles.name IN ('president','vice_president','secretary') AND users.status = 'active'"
+            )->fetchAll();
+
+            foreach ($leaders as $leader) {
+                queueNotification((int) $leader['id'], 'password_reset_request', [
+                    'name' => $targetInfo['full_name'] ?? 'Unknown',
+                    'username' => $targetInfo['username'] ?? '',
+                ]);
+            }
         }
     }
 
