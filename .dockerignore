@@ -1,0 +1,6 @@
+.git
+.env
+*.md
+setup.bat
+setup.sh
+.nixpacks
