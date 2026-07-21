@@ -312,7 +312,7 @@ CREATE TABLE income (
 -- Reusable message templates (so wording is edited in one place).
 CREATE TABLE notification_templates (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  type ENUM('saving_reminder','loan_approval','payment_due','meeting_reminder','late_payment') NOT NULL UNIQUE,
+  type VARCHAR(50) NOT NULL UNIQUE,
   subject VARCHAR(150),
   body TEXT NOT NULL
 ) ENGINE=InnoDB;
@@ -320,10 +320,10 @@ CREATE TABLE notification_templates (
 CREATE TABLE notifications (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
-  type ENUM('saving_reminder','loan_approval','payment_due','meeting_reminder','late_payment') NOT NULL,
-  channel ENUM('sms','email') NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  channel VARCHAR(20) NOT NULL,
   message TEXT NOT NULL,
-  status ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
   sent_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

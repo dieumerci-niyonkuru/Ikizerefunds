@@ -175,6 +175,16 @@ if ($created > 0) {
     echo "[Railway Setup] All leadership accounts already exist.\n";
 }
 
+// ---- Ensure notification_templates type column supports new types (ALTER from ENUM to VARCHAR) ----
+try {
+    $pdo->exec("ALTER TABLE notification_templates MODIFY COLUMN type VARCHAR(50) NOT NULL");
+    $pdo->exec("ALTER TABLE notifications MODIFY COLUMN type VARCHAR(50) NOT NULL");
+    $pdo->exec("ALTER TABLE notifications MODIFY COLUMN channel VARCHAR(20) NOT NULL");
+    $pdo->exec("ALTER TABLE notifications MODIFY COLUMN status VARCHAR(20) NOT NULL DEFAULT 'pending'");
+} catch (PDOException $e) {
+    // Already VARCHAR or table doesn't exist — fine
+}
+
 // ---- Ensure password_reset_request notification template exists ----
 $templateCheck = $pdo->prepare("SELECT COUNT(*) FROM notification_templates WHERE type = 'password_reset_request'");
 $templateCheck->execute();
