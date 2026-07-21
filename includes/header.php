@@ -59,8 +59,8 @@ if ($currentFile === '' || $currentFile === '/') {
             .public-nav-links { @apply hidden md:flex items-center gap-0; }
             .public-nav-link { @apply px-3 py-2 rounded-md text-sm font-medium text-white/90 no-underline hover:bg-white/10 transition-colors; }
             .public-nav-link.active { @apply bg-white/15 text-white font-semibold; }
-            .public-nav-toggle { @apply hidden; }
-            .public-nav-panel { @apply hidden; }
+            .public-nav-toggle { @apply md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer leading-none p-1; }
+            .public-nav-panel { @apply md:hidden absolute top-[60px] left-0 right-0 bg-primary-dark shadow-lg z-30 flex flex-col p-3 gap-1; }
             .nav-dropdown { @apply relative; }
             .nav-dropdown-menu { @apply absolute top-full left-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[200px] hidden z-40; }
             .nav-dropdown:hover .nav-dropdown-menu { @apply block; }
@@ -216,7 +216,23 @@ if ($currentFile === '' || $currentFile === '/') {
             <?php endforeach; ?>
         </nav>
         <div class="flex items-center gap-2">
-            <a href="<?= e(APP_URL) ?>/login.php" class="btn">Login</a>
+            <a href="<?= e(APP_URL) ?>/login.php" class="btn hidden sm:inline-block">Login</a>
+            <button class="public-nav-toggle no-print" type="button" aria-label="Toggle menu" onclick="document.getElementById('public-nav-panel').classList.toggle('hidden')">&#9776;</button>
+        </div>
+        <div class="public-nav-panel hidden" id="public-nav-panel">
+            <?php foreach ($publicNavItems as $item): ?>
+                <?php if (!empty($item['children'])): ?>
+                    <div class="border-b border-white/10 pb-2 mb-1">
+                        <div class="public-nav-link font-semibold text-white/60 cursor-default text-xs uppercase tracking-wide"><?= e($item['label']) ?></div>
+                        <?php foreach ($item['children'] as $child): ?>
+                            <a class="public-nav-link pl-4 text-base<?= $currentFile === $child['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>"><?= e($child['label']) ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <a class="public-nav-link text-base<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>"><?= e($item['label']) ?></a>
+                <?php endif; ?>
+            <?php endforeach; ?>
+            <a class="public-nav-link sm:hidden text-base" href="<?= e(APP_URL) ?>/login.php">Login</a>
         </div>
     <?php endif; ?>
 </header>

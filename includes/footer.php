@@ -7,7 +7,7 @@
 <?php endif; ?>
 <footer class="site-footer no-print bg-white border-t border-gray-200 mt-10">
     <div class="container">
-        <div class="grid gap-6 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] pb-4">
+        <div class="grid gap-6 grid-cols-2 lg:grid-cols-4 pb-4">
             <div>
                 <div class="font-bold mb-2"><?= e($siteName ?? APP_NAME) ?></div>
                 <p class="text-gray-500 text-sm">A savings and credit club at Tumba College, Rulindo District, Northern Province, Rwanda.</p>
