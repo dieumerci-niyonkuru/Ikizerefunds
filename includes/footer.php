@@ -1,0 +1,46 @@
+<?php if (!empty($user)): ?>
+        </div>
+    </main>
+</div>
+<?php else: ?>
+    </main>
+<?php endif; ?>
+<footer class="site-footer no-print bg-white border-t border-gray-200 mt-10">
+    <div class="container">
+        <div class="grid gap-6 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] pb-4">
+            <div>
+                <div class="font-bold mb-2"><?= e($siteName ?? APP_NAME) ?></div>
+                <p class="text-gray-500 text-sm">A savings and credit club managed with transparency and accountability.</p>
+            </div>
+            <div>
+                <div class="font-semibold text-sm mb-2">Quick Links</div>
+                <ul class="text-sm space-y-1 text-gray-600">
+                    <li><a href="<?= e(APP_URL) ?>/about.php">About</a></li>
+                    <li><a href="<?= e(APP_URL) ?>/membership.php">Membership</a></li>
+                    <li><a href="<?= e(APP_URL) ?>/leadership.php">Leadership</a></li>
+                    <li><a href="<?= e(APP_URL) ?>/announcements.php">Announcements</a></li>
+                    <li><a href="<?= e(APP_URL) ?>/feedback.php">Share an Idea</a></li>
+                    <li><a href="<?= e(APP_URL) ?>/contact.php">Contact</a></li>
+                </ul>
+            </div>
+            <?php if (!empty($settings['club_email']) || !empty($settings['club_phone'])): ?>
+            <div>
+                <div class="font-semibold text-sm mb-2">Contact</div>
+                <ul class="text-sm space-y-1 text-gray-600">
+                    <?php if (!empty($settings['club_email'])): ?>
+                        <li><a href="mailto:<?= e($settings['club_email']) ?>"><?= e($settings['club_email']) ?></a></li>
+                    <?php endif; ?>
+                    <?php if (!empty($settings['club_phone'])): ?>
+                        <li><a href="tel:<?= e($settings['club_phone']) ?>"><?= e($settings['club_phone']) ?></a></li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+        </div>
+        <div class="pt-4 border-t border-gray-100 text-sm text-gray-500 pb-6">
+            &copy; <?= date('Y') ?> <?= e($siteName ?? APP_NAME) ?>. All rights reserved.
+        </div>
+    </div>
+</footer>
+</body>
+</html>

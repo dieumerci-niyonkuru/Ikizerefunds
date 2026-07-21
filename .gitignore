@@ -1,0 +1,20 @@
+# User uploads (never version-control these)
+assets/uploads/documents/*
+assets/uploads/member_documents/*
+!assets/uploads/documents/.gitkeep
+!assets/uploads/member_documents/.gitkeep
+
+# Environment config
+.env
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log

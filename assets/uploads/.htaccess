@@ -1,0 +1,8 @@
+# Uploaded files (club logo) must never be executable, even if a
+# malicious file slips past the MIME check in modules/settings/index.php.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<FilesMatch "\.(php|phtml|php\d)$">
+    Require all denied
+</FilesMatch>

@@ -1,0 +1,2 @@
+# Config holds DB connection settings; must never be servable directly.
+Require all denied

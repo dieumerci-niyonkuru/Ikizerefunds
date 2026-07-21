@@ -1,0 +1,18 @@
+# Route all requests through index.php-style pages
+# and protect sensitive directories from direct access.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect trailing slashes
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)/$ /$1 [L,R=301]
+
+    # Block access to hidden files (.env, .git, etc.)
+    RewriteRule (^\.|/\.) - [F]
+</IfModule>
+
+# Block direct access to hidden files as a fallback
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

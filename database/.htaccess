@@ -1,0 +1,2 @@
+# schema.sql reveals the full DB structure; must never be servable directly.
+Require all denied
