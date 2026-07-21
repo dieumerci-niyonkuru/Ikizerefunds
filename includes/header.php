@@ -45,69 +45,43 @@ if ($currentFile === '' || $currentFile === '/') {
         @layer components {
             body { @apply bg-gray-100 text-gray-900; }
 
-            /* Topbar */
             .topbar { @apply sticky top-0 z-20 flex h-[60px] items-center justify-between gap-2 sm:gap-4 bg-primary px-2 sm:px-5 text-white shadow; }
             .brand { @apply flex items-center gap-2 text-sm sm:text-lg font-bold text-white no-underline min-w-0 shrink-0; }
             .brand-logo { @apply h-8 w-8 sm:h-10 sm:w-10 rounded-md bg-white p-0.5 object-contain shadow-sm; }
-            .brand span { @apply truncate; }
             .topbar-nav { @apply flex items-center gap-1 sm:gap-4 shrink-0; }
-            .topbar-nav a { @apply text-white no-underline; }
-            .user-chip { @apply text-sm hidden md:inline; }
-            .user-chip small { @apply opacity-80; }
             .sidebar-toggle { @apply inline-block md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer; }
 
-            /* Public tab navigation — desktop inline */
             .public-nav-links { @apply hidden md:flex items-center gap-0; }
             .public-nav-link { @apply px-3 py-2 rounded-md text-sm font-medium text-white/90 no-underline hover:bg-white/10 transition-colors; }
-            .public-nav-link.active { @apply bg-white/15 text-white font-semibold; }
             .public-nav-toggle { @apply md:hidden bg-transparent border-0 text-2xl text-white cursor-pointer leading-none p-1 shrink-0; }
-            /* Mobile slide-down panel */
             .public-nav-panel { @apply md:hidden absolute top-full left-0 right-0 bg-primary-dark shadow-xl z-30 flex flex-col max-h-[70vh] overflow-y-auto; }
-            .public-nav-panel.hidden { display: none; }
-            /* Mobile accordion items */
-            .mobile-nav-group-header { @apply flex items-center justify-between w-full px-4 py-3 text-base font-medium text-white no-underline cursor-pointer bg-transparent border-0 text-left hover:bg-white/10 transition-colors; }
-            .mobile-nav-group-header .arrow { @apply text-white/50 text-xs transition-transform duration-200; }
-            .mobile-nav-group-header.open .arrow { @apply rotate-180; }
-            .mobile-nav-submenu { @apply hidden bg-white/5; }
-            .mobile-nav-submenu.open { display: block; }
-            .mobile-nav-submenu a { @apply block pl-8 pr-4 py-3 text-sm text-white/80 no-underline border-b border-white/5 last:border-b-0 hover:bg-white/10 hover:text-white transition-colors; }
-            .mobile-nav-single { @apply block px-4 py-3 text-base text-white/90 no-underline border-b border-white/5 last:border-b-0 hover:bg-white/10 transition-colors; }
-            .mobile-nav-single.active { @apply bg-white/15 text-white font-semibold; }
-            /* Desktop dropdown */
+
+            .mobile-nav-group-header { @apply flex items-center justify-between w-full px-4 py-3 text-base font-medium text-white cursor-pointer bg-transparent border-0 text-left hover:bg-white/10 transition-colors; }
+            .mobile-nav-single { @apply block px-4 py-3 text-base text-white/90 no-underline border-b border-white/5 hover:bg-white/10 transition-colors; }
+
             .nav-dropdown { @apply relative; }
             .nav-dropdown-menu { @apply absolute top-full left-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[200px] hidden z-40; }
-            .nav-dropdown:hover .nav-dropdown-menu { @apply block; }
             .nav-dropdown-link { @apply block px-4 py-2.5 text-sm text-gray-700 no-underline hover:bg-primary-light; }
 
-            /* App shell */
             .app-shell { @apply flex min-h-[calc(100vh-60px)]; }
-            .sidebar {
-                @apply w-[230px] shrink-0 bg-white border-r border-gray-200 p-3
-                       fixed md:static top-[60px] md:top-0 bottom-0 left-0 z-10
-                       transition-transform duration-200
-                       overflow-y-auto shadow-lg md:shadow-none;
-            }
+            .sidebar { @apply w-[230px] shrink-0 bg-white border-r border-gray-200 p-3 fixed md:static top-[60px] md:top-0 bottom-0 left-0 z-10 transition-transform duration-200 overflow-y-auto shadow-lg md:shadow-none; }
             .sidebar-link { @apply flex items-center gap-2 rounded-lg px-3 py-2 mb-1 text-sm text-gray-800 no-underline hover:bg-primary-light; }
-            .sidebar-link.active { @apply bg-primary text-white font-semibold hover:bg-primary; }
+            .sidebar-link.active { @apply bg-primary text-white font-semibold; }
             .sidebar-icon { @apply inline-block w-5 text-center; }
             .app-content { @apply flex-1 min-w-0; }
 
-            /* Layout */
             .container { @apply max-w-5xl mx-auto my-4 sm:my-6 px-3 sm:px-5; }
             .card { @apply bg-white border border-gray-200 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm; }
 
-            /* Buttons */
             .btn { @apply inline-block bg-primary text-white border-0 rounded-md px-4 sm:px-5 py-2 text-sm cursor-pointer no-underline hover:bg-primary-dark; }
             button:not(.sidebar-toggle):not(.btn-ghost):not(.btn-plain) { @apply inline-block bg-primary text-white border-0 rounded-md px-4 sm:px-5 py-2 text-sm cursor-pointer hover:bg-primary-dark; }
             .btn-ghost { @apply bg-transparent border border-white/60 hover:bg-white/15; }
             .btn-plain { @apply bg-transparent border-0 rounded-none p-0; }
 
-            /* Flash messages */
             .flash { @apply rounded-xl px-4 py-3 mb-4 text-sm; }
             .flash-error { @apply bg-red-50 text-red-800; }
             .flash-success { @apply bg-green-50 text-green-800; }
 
-            /* Toasts */
             .toast-stack { @apply fixed top-4 right-4 z-[9000] flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm; }
             .toast { @apply flex items-start gap-2 rounded-xl px-4 py-3 text-sm text-white shadow-lg; animation: toastIn .25s ease-out; }
             .toast-success { @apply bg-green-600; }
@@ -119,14 +93,12 @@ if ($currentFile === '' || $currentFile === '/') {
             @keyframes toastIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
             @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(16px); } }
 
-            /* Badges */
             .badge { @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize whitespace-nowrap; }
             .badge-success { @apply bg-green-50 text-green-800; }
             .badge-warning { @apply bg-amber-50 text-amber-800; }
             .badge-danger { @apply bg-red-50 text-red-800; }
             .badge-neutral { @apply bg-gray-100 text-gray-600; }
 
-            /* Forms */
             form label { @apply block mb-1 font-semibold text-sm; }
             form input[type="text"], form input[type="password"], form input[type="email"],
             form input[type="number"], form input[type="date"], form input[type="datetime-local"],
@@ -135,7 +107,6 @@ if ($currentFile === '' || $currentFile === '/') {
             }
             form small { @apply block -mt-3 mb-4 text-gray-500; }
 
-            /* Search / filter bars (GET forms above a table) */
             .filter-bar { @apply flex flex-col sm:flex-row flex-wrap items-stretch sm:items-end gap-3 mb-4; }
             .filter-bar > div { @apply flex flex-col flex-1 min-w-[140px]; }
             .filter-bar label { @apply text-xs font-semibold text-gray-500 mb-1; }
@@ -144,14 +115,12 @@ if ($currentFile === '' || $currentFile === '/') {
             }
             .filter-bar button, .filter-bar a.btn { @apply mb-0; }
 
-            /* Tables — horizontally scrollable on mobile */
             .table-wrap { @apply overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0; }
             table { @apply w-full border-collapse min-w-[500px]; }
             th, td { @apply text-left px-2 py-2 border-b border-gray-200 text-sm; }
             th { @apply text-gray-500 font-semibold uppercase text-xs tracking-wide whitespace-nowrap; }
             tbody tr:hover { @apply bg-primary-light; }
 
-            /* Grids */
             .dashboard-grid { @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3; }
             .dashboard-grid .card { @apply mb-0; }
             .stat-grid { @apply grid gap-3 sm:gap-4 mb-6 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4; }
@@ -160,27 +129,61 @@ if ($currentFile === '' || $currentFile === '/') {
             .stat-grid .stat .value, .report-summary .stat .value { @apply text-xl sm:text-2xl font-bold text-primary-dark; }
             .report-summary { @apply grid gap-3 sm:gap-4 mb-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4; }
 
-            /* Auth */
             .auth-card { @apply max-w-md mx-auto mt-6 sm:mt-12 px-3 sm:px-0; }
 
-            /* Hero */
             .hero { @apply bg-gradient-to-br from-primary to-primary-dark text-white rounded-xl p-6 sm:p-10 mb-6 text-center shadow; }
             .hero h1 { @apply text-2xl sm:text-3xl md:text-4xl font-bold mb-3; }
             .hero p { @apply text-white/90 max-w-xl mx-auto mb-5 text-sm sm:text-base; }
 
-            /* Page headings */
             h1 { @apply text-xl sm:text-2xl font-bold mb-4; }
             h2 { @apply text-lg sm:text-xl font-bold mb-3; }
 
-            /* Action buttons in table rows */
             td .btn, td button { @apply text-xs px-2 py-1; }
+        }
+    </style>
+    <style>
+        /* Compound selectors — Tailwind CDN cannot @apply these */
 
-            @media print {
-                .topbar, .site-footer, .no-print { display: none !important; }
-                .app-shell, .app-content { display: block !important; }
-                .container { @apply m-0 max-w-full p-0; }
-                .card { @apply border-0 p-0 shadow-none; }
-            }
+        /* Brand */
+        .brand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Topbar nav */
+        .topbar-nav a { color: #fff; text-decoration: none; }
+
+        /* User chip */
+        .user-chip { font-size: 0.875rem; display: none; }
+        @media (min-width: 768px) { .user-chip { display: inline; } }
+        .user-chip small { opacity: 0.8; }
+
+        /* Public nav links — desktop */
+        .public-nav-link.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+        .nav-dropdown:hover .nav-dropdown-menu { display: block; }
+
+        /* Mobile nav panel */
+        #public-nav-panel { display: none; }
+        #public-nav-panel.open { display: flex; }
+
+        /* Mobile accordion */
+        .mobile-nav-group-header .arrow { color: rgba(255,255,255,0.5); font-size: 0.75rem; transition: transform 0.2s; }
+        .mobile-nav-group-header.open .arrow { transform: rotate(180deg); }
+        .mobile-nav-submenu { display: none; background: rgba(255,255,255,0.05); }
+        .mobile-nav-submenu.open { display: block; }
+        .mobile-nav-submenu a { display: block; padding: 12px 32px 12px 32px; font-size: 0.875rem; color: rgba(255,255,255,0.8); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.15s; }
+        .mobile-nav-submenu a:last-child { border-bottom: none; }
+        .mobile-nav-submenu a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .mobile-nav-submenu a.active-sub { font-weight: 600; color: #fff; }
+        .mobile-nav-single.active { background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; }
+
+        /* Sidebar active link */
+        .sidebar-link.active { background: #16234B; color: #fff; font-weight: 600; }
+        .sidebar-link.active:hover { background: #16234B; }
+
+        /* Fallback for any @media print */
+        @media print {
+            .topbar, .site-footer, .no-print { display: none !important; }
+            .app-shell, .app-content { display: block !important; }
+            .container { margin: 0; max-width: 100%; padding: 0; }
+            .card { border: 0; padding: 0; box-shadow: none; }
         }
     </style>
 </head>
@@ -188,7 +191,7 @@ if ($currentFile === '' || $currentFile === '/') {
 <?php require __DIR__ . '/page_loader.php'; ?>
 <header class="topbar relative">
     <a class="brand" href="<?= e(APP_URL) ?>/index.php">
-        <img src="<?= e(APP_URL) ?>/<?= e($siteLogo) ?>" alt="" class="brand-logo">
+        <img src="<?= e(APP_URL) ?>/<?= e($siteLogo) ?>" alt="" class="brand-logo" width="40" height="40" style="width:40px;height:40px;">
         <span><?= e($siteName) ?></span>
     </a>
 
@@ -230,9 +233,9 @@ if ($currentFile === '' || $currentFile === '/') {
         </nav>
         <div class="flex items-center gap-2 shrink-0">
             <a href="<?= e(APP_URL) ?>/login.php" class="btn hidden sm:inline-block">Login</a>
-            <button class="public-nav-toggle no-print" type="button" aria-label="Toggle menu" onclick="var p=document.getElementById('public-nav-panel'); p.classList.toggle('hidden');">&#9776;</button>
+            <button class="public-nav-toggle no-print" type="button" aria-label="Toggle menu" onclick="document.getElementById('public-nav-panel').classList.toggle('open')">&#9776;</button>
         </div>
-        <div class="public-nav-panel hidden" id="public-nav-panel">
+        <div id="public-nav-panel" class="public-nav-panel">
             <?php foreach ($publicNavItems as $item): ?>
                 <?php if (!empty($item['children'])): ?>
                     <?php
@@ -242,22 +245,22 @@ if ($currentFile === '' || $currentFile === '/') {
                     }
                     ?>
                     <div class="mobile-nav-group">
-                        <button type="button" class="mobile-nav-group-header <?= $isGroupActive ? 'open' : '' ?>"
+                        <button type="button" class="mobile-nav-group-header<?= $isGroupActive ? ' open' : '' ?>"
                                 onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
                             <span><?= e($item['label']) ?></span>
                             <span class="arrow">&#9662;</span>
                         </button>
-                        <div class="mobile-nav-submenu <?= $isGroupActive ? 'open' : '' ?>">
+                        <div class="mobile-nav-submenu<?= $isGroupActive ? ' open' : '' ?>">
                             <?php foreach ($item['children'] as $child): ?>
-                                <a href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>" class="<?= $currentFile === $child['href'] ? ' font-semibold text-white' : '' ?>"><?= e($child['label']) ?></a>
+                                <a href="<?= e(APP_URL) ?>/<?= e($child['href']) ?>" class="<?= $currentFile === $child['href'] ? 'active-sub' : '' ?>" onclick="document.getElementById('public-nav-panel').classList.remove('open')"><?= e($child['label']) ?></a>
                             <?php endforeach; ?>
                         </div>
                     </div>
                 <?php else: ?>
-                    <a class="mobile-nav-single<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>" onclick="document.getElementById('public-nav-panel').classList.add('hidden')"><?= e($item['label']) ?></a>
+                    <a class="mobile-nav-single<?= $currentFile === $item['href'] ? ' active' : '' ?>" href="<?= e(APP_URL) ?>/<?= e($item['href']) ?>" onclick="document.getElementById('public-nav-panel').classList.remove('open')"><?= e($item['label']) ?></a>
                 <?php endif; ?>
             <?php endforeach; ?>
-            <a class="mobile-nav-single sm:hidden" href="<?= e(APP_URL) ?>/login.php" onclick="document.getElementById('public-nav-panel').classList.add('hidden')">Login</a>
+            <a class="mobile-nav-single sm:hidden" href="<?= e(APP_URL) ?>/login.php" onclick="document.getElementById('public-nav-panel').classList.remove('open')">Login</a>
         </div>
     <?php endif; ?>
 </header>
