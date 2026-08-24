@@ -8,7 +8,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "startCommand": "sh -c 'php scripts/railway_setup.php && php -S 0.0.0.0:${PORT:-8080} -t .'",
+    "startCommand": "sh -c 'php scripts/railway_setup.php && php -S 0.0.0.0:${PORT:-8080} -t . index.php'",
     "sleepApplication": false,
     "useLegacyStacker": false,
     "ipv6EgressEnabled": false,
