@@ -14,7 +14,9 @@ Plain PHP 8 (PDO/MySQL), no framework, no build step.
 - [Tech stack](#tech-stack)
 - [Quick start (local)](#quick-start-local)
 - [Deploying to Railway](#deploying-to-railway)
+- [Redeploying on Railway](#redeploying-on-railway)
 - [Environment variables](#environment-variables)
+- [**Login credentials**](#login-credentials) — usernames, passwords, roles
 - [After the first deploy](#after-the-first-deploy)
 - [Troubleshooting](#troubleshooting)
 - [Project structure](#project-structure)
@@ -193,14 +195,69 @@ Starting server on port 8080...
 
 Then open your domain and sign in at `/login.php`.
 
-### Redeploying
+---
 
-Every `git push` to your default branch triggers a rebuild. The setup script is
-**idempotent** — on an existing database it prints `Database already seeded …
-Skipping import` and leaves your data untouched. It is safe to redeploy as often
-as you like.
+## Redeploying on Railway
 
-To redeploy without a code change: **Deployments → ⋯ → Redeploy**.
+**Redeploying is safe.** `scripts/railway_setup.php` is idempotent — on an
+existing database it prints `Database already seeded … Skipping import` and
+leaves every table untouched. Members, savings, loans, meetings and changed
+passwords all survive. You can redeploy as often as you like.
+
+### Method 1 — push to GitHub (normal way)
+
+Any push to your default branch triggers a rebuild automatically:
+
+```bash
+git add -A && git commit -m "Your change" && git push
+```
+
+Railway picks it up within a few seconds. Watch **Deployments → View Logs**.
+
+### Method 2 — redeploy the same code from the dashboard
+
+Use this after changing an environment variable, or to retry a failed build:
+
+1. Open your **web service** in Railway.
+2. **Deployments** tab.
+3. On the most recent deployment, click **⋯ → Redeploy**.
+
+> Changing a variable under **Variables** already triggers a redeploy on its
+> own — you do not need to do both.
+
+### Method 3 — Railway CLI
+
+```bash
+npm i -g @railway/cli
+```
+
+```bash
+railway login && railway link && railway up
+```
+
+### What survives a redeploy
+
+| Survives | Does **not** survive |
+|----------|----------------------|
+| Everything in MySQL — members, savings, loans, meetings, messages, settings, changed passwords | Files in `assets/uploads/` **unless a volume is mounted** (see Step 6) |
+| Environment variables | The container filesystem generally |
+| Your generated domain | The settings cache file (harmless — it rebuilds in one request) |
+
+### Rolling back
+
+**Deployments → pick an earlier successful deployment → ⋯ → Redeploy.** Code
+rolls back immediately. Note that database *migrations* are forward-only: the
+setup script adds columns and templates but never drops them, so a rollback of
+code is safe against a newer database.
+
+### Deploy checklist
+
+- [ ] `ADMIN_PASS` set (or all seeded passwords changed after first login)
+- [ ] MySQL plugin attached, `MYSQL*` variables visible on the web service
+- [ ] Volume mounted at `/var/www/html/assets/uploads`
+- [ ] `APP_DEBUG` unset or `0`
+- [ ] Domain generated under Settings → Networking
+- [ ] Logs end with `[Railway Setup] Done.` then `Starting server on port …`
 
 ---
 
@@ -244,18 +301,77 @@ Resolved in this order: `DB_*` → `DATABASE_URL`/`MYSQL_URL` → `MYSQL*` → d
 > **Real environment variables always win over `.env`.** A `.env` file only
 > fills gaps, so a stray file can never override your platform config.
 
-### Default seeded logins
+---
 
-Created only when `SEED_ROLE_ACCOUNTS` is not `0`, and only if the username and
-email are both free. **Change or delete these immediately.**
+## Login credentials
 
-| Role           | Username        | Password             |
-|----------------|-----------------|----------------------|
-| President      | `president`     | `President@123`      |
-| Vice President | `vicepresident` | `VicePresident@123`  |
-| Secretary      | `secretary`     | `Secretary@123`      |
-| Accountant     | `accountant`    | `Accountant@123`     |
-| Auditor        | `auditor`       | `Auditor@123`        |
+Sign in at **`/login.php`** on your deployed domain
+(`https://your-app.up.railway.app/login.php`).
+
+### Seeded leadership accounts
+
+`scripts/railway_setup.php` creates these on the first boot. They are created
+**only** when the username and email are both still free, so re-deploying never
+overwrites a password you have changed.
+
+| # | Role | Username | Password | Seeded email |
+|---|------|----------|----------|--------------|
+| 1 | **President** | `president` | `President@123` | `president@ikizere-funds.railway.app` |
+| 2 | **Vice President** | `vicepresident` | `VicePresident@123` | `vicepresident@ikizere-funds.railway.app` |
+| 3 | **Secretary** | `secretary` | `Secretary@123` | `secretary@ikizere-funds.railway.app` |
+| 4 | **Accountant** | `accountant` | `Accountant@123` | `accountant@ikizere-funds.railway.app` |
+| 5 | **Auditor** | `auditor` | `Auditor@123` | `auditor@ikizere-funds.railway.app` |
+
+> ### 🔴 These passwords are published in this README
+>
+> Anyone who finds your repository can read them. Before or immediately after
+> your first deploy you **must** either set `ADMIN_PASS` (below), or log in and
+> change every password you intend to keep and delete the rest.
+
+### What each role can do
+
+| Role | Primary responsibility | Key access |
+|------|------------------------|------------|
+| **President** | Runs the club; full administrative control | Everything — members, savings, loans, meetings, finance, reports, announcements, permissions, board terms, settings |
+| **Vice President** | Deputises for the president | Members, savings, loans, meetings, finance, reports, documents (view) |
+| **Secretary** | Register, minutes, correspondence | Members, join requests, meetings, documents (upload), announcements, feedback |
+| **Accountant** | All money movement | Savings, loans, finance (fines/expenses/income), reports, members |
+| **Auditor** | Independent oversight — read-only on money | Reports, documents (view), own savings/loans |
+| **Member** | Ordinary saver | Own profile, own savings and loans, own messages, meetings (view + own attendance), notifications |
+
+The full permission matrix is in [Roles & access](#roles--access), and every
+permission is editable at runtime under **Permissions** — these are defaults,
+not hard-coded rules.
+
+### Changing the credentials
+
+Three ways, best first:
+
+1. **Before the first deploy — set env vars on Railway** (nothing is ever
+   published):
+
+   | Variable | Purpose |
+   |----------|---------|
+   | `ADMIN_PASS` | Password for the president account |
+   | `ADMIN_USER` | Username, if you don't want `president` |
+   | `ADMIN_NAME` / `ADMIN_EMAIL` / `ADMIN_PHONE` | Profile details |
+   | `SEED_ROLE_ACCOUNTS=0` | Skip accounts 2–5 entirely and create real people by hand |
+
+2. **After logging in** — Members → Edit → set a new password for each account,
+   and delete any seeded account you are not using.
+
+3. **Locally, from the CLI** — create an account with your own password:
+
+   ```bash
+   php scripts/create_admin.php "Your Name" myusername "MyStrongPass!" you@example.com 0788000000 president
+   ```
+
+### If you are locked out
+
+The president can reset anyone's password under **Password Resets**. If no
+president account works, run `scripts/create_admin.php` against the Railway
+database (Railway → MySQL service → **Connect** for the credentials), or connect
+with any MySQL client and delete the stale user row so the next deploy re-seeds it.
 
 ---
 
