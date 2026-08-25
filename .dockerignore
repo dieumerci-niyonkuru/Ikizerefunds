@@ -1,6 +1,12 @@
 .git
+.github
 .env
+.env.development
+.env.production
 *.md
+docs
+design
 setup.bat
 setup.sh
+docker-compose.yml
 .nixpacks

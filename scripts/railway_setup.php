@@ -21,8 +21,9 @@ if (file_exists($envFile)) {
             [$key, $value] = explode('=', $line, 2);
             $key   = trim($key);
             $value = trim(trim($value), '"\'');
-            if (!array_key_exists($key, $_ENV)) {
-                $_ENV[$key]            = $value;
+            // Real environment variables always win — see config/config.php.
+            if (getenv($key) === false) {
+                $_ENV[$key] = $value;
                 putenv("{$key}={$value}");
             }
         }
@@ -139,16 +140,38 @@ try {
 }
 
 // ---- Create all leadership accounts (skip existing) ----
+// The president can be overridden with ADMIN_* env vars so a real deployment
+// never has to go live on a published default password.
+$adminUser  = getenv('ADMIN_USER')  ?: 'president';
+$adminPass  = getenv('ADMIN_PASS')  ?: 'President@123';
+$adminName  = getenv('ADMIN_NAME')  ?: 'Club President';
+$adminEmail = getenv('ADMIN_EMAIL') ?: 'president@ikizere-funds.railway.app';
+$adminPhone = getenv('ADMIN_PHONE') ?: '+250700000001';
+
+$usingDefaultAdminPass = !getenv('ADMIN_PASS');
+
+// The remaining committee logins are convenience seeds for a fresh install.
+// Set SEED_ROLE_ACCOUNTS=0 to skip them and create those users by hand instead.
+$seedRoleAccounts = getenv('SEED_ROLE_ACCOUNTS') !== '0';
+
 $leaders = [
-    ['president',      'Club President',       'president',      'President@123',      'president@ikizere-funds.railway.app',      '+250700000001'],
-    ['vice_president', 'Vice President',       'vicepresident',  'VicePresident@123',  'vicepresident@ikizere-funds.railway.app',  '+250700000002'],
-    ['secretary',      'Secretary',            'secretary',      'Secretary@123',      'secretary@ikizere-funds.railway.app',      '+250700000003'],
-    ['accountant',     'Accountant',           'accountant',     'Accountant@123',     'accountant@ikizere-funds.railway.app',     '+250700000004'],
-    ['auditor',        'Auditor',              'auditor',        'Auditor@123',        'auditor@ikizere-funds.railway.app',        '+250700000005'],
+    ['president', $adminName, $adminUser, $adminPass, $adminEmail, $adminPhone],
 ];
 
-$roleStmt  = $pdo->prepare('SELECT id FROM roles WHERE name = ?');
-$checkStmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = ?');
+if ($seedRoleAccounts) {
+    array_push(
+        $leaders,
+        ['vice_president', 'Vice President', 'vicepresident', 'VicePresident@123', 'vicepresident@ikizere-funds.railway.app', '+250700000002'],
+        ['secretary',      'Secretary',      'secretary',     'Secretary@123',     'secretary@ikizere-funds.railway.app',     '+250700000003'],
+        ['accountant',     'Accountant',     'accountant',    'Accountant@123',    'accountant@ikizere-funds.railway.app',    '+250700000004'],
+        ['auditor',        'Auditor',        'auditor',       'Auditor@123',       'auditor@ikizere-funds.railway.app',       '+250700000005'],
+    );
+}
+
+$roleStmt = $pdo->prepare('SELECT id FROM roles WHERE name = ?');
+// users.email is UNIQUE as well as username, so both have to be checked —
+// otherwise a clash throws mid-boot and the platform restart-loops.
+$checkStmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE username = ? OR (email IS NOT NULL AND email = ?)');
 $userStmt  = $pdo->prepare(
     'INSERT INTO users (role_id, full_name, username, email, phone, password_hash, status)
      VALUES (?, ?, ?, ?, ?, ?, "active")'
@@ -156,21 +179,33 @@ $userStmt  = $pdo->prepare(
 
 $created = 0;
 foreach ($leaders as [$role, $name, $user, $pass, $email, $phone]) {
-    $checkStmt->execute([$user]);
+    $checkStmt->execute([$user, $email]);
     if ($checkStmt->fetchColumn() > 0) {
         continue;
     }
     $roleStmt->execute([$role]);
     $roleId = $roleStmt->fetchColumn();
-    if ($roleId) {
+    if (!$roleId) {
+        continue;
+    }
+
+    // Seeding a login must never be able to abort the boot.
+    try {
         $userStmt->execute([$roleId, $name, $user, $email, $phone, password_hash($pass, PASSWORD_DEFAULT)]);
-        echo "[Railway Setup] Created {$role}: {$user} / {$pass}\n";
+        echo "[Railway Setup] Created {$role}: {$user}\n";
         $created++;
+    } catch (PDOException $e) {
+        echo "[Railway Setup] Skipped {$role} ({$user}): {$e->getMessage()}\n";
     }
 }
 
 if ($created > 0) {
-    echo "[Railway Setup] Created {$created} new user(s). >>> CHANGE ALL PASSWORDS after first login! <<<\n";
+    echo "[Railway Setup] Created {$created} new user(s).\n";
+    if ($usingDefaultAdminPass) {
+        echo "[Railway Setup] !! WARNING: the president account is using the published default\n";
+        echo "[Railway Setup] !! password. Set ADMIN_PASS in your Railway variables, or change it\n";
+        echo "[Railway Setup] !! from Settings immediately after your first login.\n";
+    }
 } else {
     echo "[Railway Setup] All leadership accounts already exist.\n";
 }

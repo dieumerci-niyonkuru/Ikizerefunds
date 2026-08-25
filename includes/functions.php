@@ -63,6 +63,22 @@ function formatMoney(float $amount): string
     return number_format($amount, 2);
 }
 
+// Short form for headline figures on the public pages, where a full
+// "12,450,000.00" would crowd the tile: 12.5M, 840K, 950.
+function compactNumber(float $amount): string
+{
+    $abs = abs($amount);
+
+    if ($abs >= 1000000) {
+        return rtrim(rtrim(number_format($amount / 1000000, 1), '0'), '.') . 'M';
+    }
+    if ($abs >= 1000) {
+        return rtrim(rtrim(number_format($amount / 1000, 1), '0'), '.') . 'K';
+    }
+
+    return number_format($amount);
+}
+
 // Writes an entry to the audit_log table for tracking sensitive actions.
 function auditLog(int $userId, string $action, string $targetTable, ?int $targetId = null, ?string $details = null): void
 {

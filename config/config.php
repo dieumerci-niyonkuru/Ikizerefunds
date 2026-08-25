@@ -15,8 +15,11 @@ if (file_exists($envFile)) {
             [$key, $value] = explode('=', $line, 2);
             $key   = trim($key);
             $value = trim(trim($value), '"\'');
-            if (!array_key_exists($key, $_ENV)) {
-                $_ENV[$key]            = $value;
+            // Real environment variables always win. Checking $_ENV here would
+            // be wrong: PHP CLI often leaves it unpopulated (variables_order),
+            // so a stray .env would silently override the host's own config.
+            if (getenv($key) === false) {
+                $_ENV[$key] = $value;
                 putenv("{$key}={$value}");
             }
         }

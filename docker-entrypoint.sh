@@ -49,7 +49,10 @@ php /var/www/html/scripts/railway_setup.php
 # ---- Start PHP built-in server with OPcache ----
 PORT="${PORT:-8080}"
 echo "Starting server on port $PORT..."
-exec php -S 0.0.0.0:$PORT -t /var/www/html \
+# router.php enforces the same protections as .htaccess. The built-in server
+# ignores .htaccess entirely, so without it /.env and /database/schema.sql
+# would be served as plain text.
+exec php -S 0.0.0.0:$PORT -t /var/www/html /var/www/html/router.php \
     -d opcache.enable=1 \
     -d opcache.memory_consumption=64 \
     -d opcache.interned_strings_buffer=8 \

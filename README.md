@@ -1,182 +1,336 @@
-# IKIZERE FUNDS Club Website
+# IKIZERE FUNDS Club
 
-A web-based management system for a savings and credit club: member registration,
-savings, loans, meetings, reports, notifications, and role-based administration.
+A web-based management system for a savings and credit club at **Tumba College,
+Rulindo District, Northern Province, Rwanda** — member registration, savings,
+loans, meetings, reports, notifications and role-based administration, plus a
+public marketing site.
 
-Plain PHP (PDO/MySQL), no framework. Tailwind CSS via CDN for styling.
+Plain PHP 8 (PDO/MySQL), no framework, no build step.
+
+---
+
+## Contents
+
+- [Tech stack](#tech-stack)
+- [Quick start (local)](#quick-start-local)
+- [Deploying to Railway](#deploying-to-railway)
+- [Environment variables](#environment-variables)
+- [After the first deploy](#after-the-first-deploy)
+- [Troubleshooting](#troubleshooting)
+- [Project structure](#project-structure)
+- [Roles & access](#roles--access)
+- [Security notes](#security-notes)
+
+---
 
 ## Tech stack
 
-| Layer      | Choice                                                         |
-|------------|-----------------------------------------------------------------|
-| Backend    | PHP 8+, plain procedural/functional style, PDO for all DB access |
-| Database   | MySQL / MariaDB (InnoDB, utf8mb4)                                |
+| Layer      | Choice                                                              |
+|------------|---------------------------------------------------------------------|
+| Backend    | PHP 8.0+, procedural/functional, PDO for all DB access               |
+| Database   | MySQL 5.7+ / MariaDB 10.3+ (InnoDB, utf8mb4)                         |
 | Frontend   | Server-rendered PHP + Tailwind CSS (Play CDN, `cdn.tailwindcss.com`) |
-| Auth       | Sessions + `password_hash`/`password_verify`, CSRF tokens on every form |
-| PDF export | Browser "Print / Save as PDF" on report pages (no server library) |
+| Auth       | Sessions + `password_hash`/`password_verify`, CSRF tokens on forms   |
+| Icons      | Inline SVG (`includes/icons.php`) — no icon font, no extra requests  |
+| Photos     | Unsplash CDN, defined in `includes/images.php`                       |
+| PDF export | Browser "Print / Save as PDF" on report pages                        |
 
-Tailwind loads from a CDN, so **the browser needs internet access** to render
-the styling. There is no Node/npm build step.
+**The browser needs internet access** — Tailwind and the homepage photography
+both load from CDNs. There is no Node/npm step; nothing is compiled.
+
+---
+
+## Quick start (local)
+
+### Requirements
+
+- PHP 8.0+ with `pdo_mysql`, `fileinfo` and `gd` extensions
+- MySQL 5.7+ / MariaDB 10.3+
+- XAMPP/WAMP is fine — or just PHP's built-in server
+
+### Windows (XAMPP), one command
+
+Start **MySQL** from the XAMPP Control Panel, then:
+
+```bash
+setup.bat
+```
+
+That creates the database, imports the schema, creates an admin, and starts the
+server on <http://localhost:8000>.
+
+### Any platform, manually
+
+1. **Create the database and import the schema:**
+
+   ```bash
+   mysql -u root -p -e "CREATE DATABASE ikizere_funds CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+   ```
+
+   ```bash
+   mysql -u root -p ikizere_funds < database/schema.sql
+   ```
+
+   This seeds roles, permission codes, savings/loan types and notification
+   templates — but **no user accounts**.
+
+2. **Create your `.env`:**
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   For local development set `APP_DEBUG=1` so PHP errors are visible.
+
+3. **Create the first login** (the schema seeds none):
+
+   ```bash
+   php scripts/create_admin.php "Your Name" president1 "SomeStrongPass!" you@example.com 0788000000 president
+   ```
+
+   Run it with no arguments to be prompted interactively instead.
+
+4. **Serve it.** Always pass `router.php` — see the warning below:
+
+   ```bash
+   php -S localhost:8000 -t . router.php
+   ```
+
+   Then open <http://localhost:8000>.
+
+> ### ⚠️ Always start the built-in server with `router.php`
+>
+> Apache reads `.htaccess`; **PHP's built-in server does not.** Started without
+> the router, `php -S` will happily serve `/.env` and `/database/schema.sql` as
+> plain text to anyone who asks — your database credentials and full schema.
+>
+> `router.php` enforces the same rules as `.htaccess` in PHP, so both hosts
+> behave identically. The Dockerfile, `Procfile` and `railway.json` all use it.
+
+---
+
+## Deploying to Railway
+
+Railway builds from the `Dockerfile` and runs `docker-entrypoint.sh`, which
+waits for MySQL, runs `scripts/railway_setup.php`, then starts PHP with
+`router.php`. The database is created, migrated and seeded automatically on
+every boot — **no manual SQL import is needed.**
+
+### Step 1 — Push your code to GitHub
+
+```bash
+git add -A && git commit -m "Deploy to Railway" && git push
+```
+
+### Step 2 — Create the Railway project
+
+1. Go to <https://railway.app> and sign in.
+2. **New Project → Deploy from GitHub repo**.
+3. Pick this repository and authorise access.
+
+Railway detects `railway.json` and builds with the Dockerfile automatically.
+
+### Step 3 — Add the MySQL database
+
+In the same project: **New → Database → Add MySQL**.
+
+Railway injects `MYSQLHOST`, `MYSQLPORT`, `MYSQL_DATABASE`, `MYSQL_USER`,
+`MYSQL_PASSWORD` and `MYSQL_URL` into your service. The app reads all of these
+automatically — **you do not need to set any `DB_*` variable yourself.**
+
+> If the MySQL service does not appear to be linked, open your **web service →
+> Variables → Add Variable Reference** and add the `MYSQL_*` variables from the
+> database service.
+
+### Step 4 — Set your own admin password
+
+Before the first boot, add these under **your web service → Variables**:
+
+| Variable     | Example                | Why                                        |
+|--------------|------------------------|--------------------------------------------|
+| `ADMIN_USER` | `president`            | Username for the first president account    |
+| `ADMIN_PASS` | *a strong password*    | **Set this** — otherwise a published default is used |
+| `ADMIN_NAME` | `Iradukunda Daniel`    | Display name                                |
+| `ADMIN_EMAIL`| `you@example.com`      | Must be unique                              |
+| `ADMIN_PHONE`| `+250790974685`        | Optional                                    |
+| `SEED_ROLE_ACCOUNTS` | `0`            | Skip the demo VP/secretary/accountant/auditor logins |
+
+If you skip `ADMIN_PASS`, the deploy still succeeds but boots with the default
+password documented below and prints a warning in the deploy logs.
+
+### Step 5 — Generate a public URL
+
+**Settings → Networking → Generate Domain.** Railway assigns
+`your-app.up.railway.app` and terminates TLS for you.
+
+### Step 6 — Add a volume so uploads survive redeploys
+
+⚠️ **Important.** Container filesystems are wiped on every redeploy. Without a
+volume, member photos and uploaded ID documents are **permanently lost** each
+time you deploy.
+
+**Your service → Variables/Settings → Volumes → New Volume**, mount path:
+
+```
+/var/www/html/assets/uploads
+```
+
+### Step 7 — Deploy and check the logs
+
+Watch **Deployments → View Logs**. A healthy boot looks like:
+
+```
+=== IKIZERE FUNDS — Docker Setup ===
+FINAL DB: host=... port=3306 name=railway user=root
+Waiting for MySQL...
+ MySQL is ready.
+[Railway Setup] Importing database/schema.sql ...
+[Railway Setup] Imported 42 SQL statements.
+[Railway Setup] Created president: president
+[Railway Setup] Done.
+Starting server on port 8080...
+```
+
+Then open your domain and sign in at `/login.php`.
+
+### Redeploying
+
+Every `git push` to your default branch triggers a rebuild. The setup script is
+**idempotent** — on an existing database it prints `Database already seeded …
+Skipping import` and leaves your data untouched. It is safe to redeploy as often
+as you like.
+
+To redeploy without a code change: **Deployments → ⋯ → Redeploy**.
+
+---
+
+## Environment variables
+
+Nothing is required on Railway if you added the MySQL plugin — but everything
+can be overridden.
+
+### Database (auto-detected on Railway)
+
+Resolved in this order: `DB_*` → `DATABASE_URL`/`MYSQL_URL` → `MYSQL*` → defaults.
+
+| Variable  | Default     | Notes                                        |
+|-----------|-------------|----------------------------------------------|
+| `DB_HOST` | `127.0.0.1` | Falls back to `MYSQLHOST`                     |
+| `DB_PORT` | `3306`      | Falls back to `MYSQLPORT`                     |
+| `DB_NAME` | `ikizere_funds` | Falls back to `MYSQL_DATABASE`            |
+| `DB_USER` | `root`      | Falls back to `MYSQL_USER`                    |
+| `DB_PASS` | *(empty)*   | Falls back to `MYSQL_PASSWORD`                |
+| `DATABASE_URL` / `MYSQL_URL` | — | `mysql://user:pass@host:port/db` |
+
+### Application
+
+| Variable    | Default          | Notes                                                    |
+|-------------|------------------|----------------------------------------------------------|
+| `APP_URL`   | *auto-detected*  | Leave unset on Railway — detected from the request host   |
+| `APP_DEBUG` | `0`              | `1` shows PHP errors. **Never set to 1 in production.**   |
+| `PORT`      | `8080`           | Set by Railway automatically                              |
+
+### First-run admin seeding
+
+| Variable              | Default                | Notes                                     |
+|-----------------------|------------------------|-------------------------------------------|
+| `ADMIN_USER`          | `president`            |                                           |
+| `ADMIN_PASS`          | `President@123`        | **Override this.** Published default.      |
+| `ADMIN_NAME`          | `Club President`       |                                           |
+| `ADMIN_EMAIL`         | `president@ikizere-funds.railway.app` | Must be unique          |
+| `ADMIN_PHONE`         | `+250700000001`        |                                           |
+| `SEED_ROLE_ACCOUNTS`  | *(enabled)*            | Set to `0` to skip the demo role logins    |
+
+> **Real environment variables always win over `.env`.** A `.env` file only
+> fills gaps, so a stray file can never override your platform config.
+
+### Default seeded logins
+
+Created only when `SEED_ROLE_ACCOUNTS` is not `0`, and only if the username and
+email are both free. **Change or delete these immediately.**
+
+| Role           | Username        | Password             |
+|----------------|-----------------|----------------------|
+| President      | `president`     | `President@123`      |
+| Vice President | `vicepresident` | `VicePresident@123`  |
+| Secretary      | `secretary`     | `Secretary@123`      |
+| Accountant     | `accountant`    | `Accountant@123`     |
+| Auditor        | `auditor`       | `Auditor@123`        |
+
+---
+
+## After the first deploy
+
+1. **Log in and change every seeded password** (Settings → or Members → Edit).
+2. **Delete the role accounts you don't use.**
+3. **Fill in club details** under Settings — `club_name`, `club_email`,
+   `club_phone`, `logo_path`. These drive the header, footer and contact page.
+   Until they're set, the site falls back to the president's published contact
+   from `includes/leadership.php`.
+4. **Optional social links** — `club_facebook`, `club_twitter`,
+   `club_instagram`, `club_linkedin` in Settings. Icons appear in the footer
+   only when a value is set, so there are never dead links.
+5. **Confirm `APP_DEBUG` is unset or `0`.**
+6. **Set up daily reminders** (optional) — run `php scripts/send_reminders.php`
+   once a day via a Railway cron service or an external scheduler.
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause & fix |
+|---|---|
+| `exec /usr/local/bin/docker-entrypoint.sh: no such file or directory` | The shell script was committed with CRLF line endings. `.gitattributes` forces LF — make sure it is committed, then `git add --renormalize . && git commit`. |
+| Deploy loops / restarts | Check logs. Usually MySQL isn't linked — confirm the `MYSQL*` variables are present on the **web service**, not just the database service. |
+| `Cannot connect to MySQL` | The MySQL plugin isn't attached, or you set a partial `DB_*` override. Remove your `DB_*` variables and let the `MYSQL*` ones be used. |
+| Site loads but is unstyled | The Tailwind CDN is blocked. The browser needs outbound internet access. |
+| Homepage photos missing | `images.unsplash.com` is unreachable. Swap the ids in `includes/images.php`, or download them into `assets/` and point the entries at local paths. |
+| Uploaded photos vanish after deploy | No volume mounted. See **Step 6**. |
+| `/.env` or `/database/schema.sql` is downloadable | The server was started **without** `router.php`. See the warning in Quick start. |
+| 404 page is the plain PHP one | Same cause — start with `router.php`. |
+| Everything 404s / homepage on every URL | The old `railway.json` used `index.php` as the router. It must be `router.php`. |
+
+---
 
 ## Project structure
 
 ```
-ikizere_funds/
-  config/
-    config.php        Env-based settings, session hardening
-    database.php       PDO singleton via db()
-  includes/
-    auth.php            Login, rate limiting, requireLogin()/requireRole()
-    functions.php        e(), CSRF helpers, flash messages, statusBadge()
-    notifications.php    queueNotification() / dispatchPendingNotifications()
-    nav.php              Single source of truth for the logged-in sidebar
-    public_nav.php       Single source of truth for the public tab bar
-    leadership.php       Data source for the public Leadership page (name/title/photo)
-    header.php / footer.php   Shared layout (topbar + sidebar + Tailwind setup)
-    page_loader.php       Branded full-screen loading overlay, included by header.php on every page
-    flash_toasts.php      Renders getFlashes() as auto-dismissing top-right toasts, included by header.php
-  index.php, about.php, membership.php, leadership.php, announcements.php,
-  contact.php, feedback.php, forgot_password.php
-                          Public site: tabbed nav, no login required.
-                          membership.php also takes join requests; feedback.php
-                          takes visitor ideas/suggestions; forgot_password.php
-                          logs a password-reset request for leadership to act on.
-  modules/
-    members/    Register (incl. national ID, address, next of kin) + list members;
-                 member's own profile (editable, incl. photo/document upload + next of kin)
-    membership_requests/  Review public join requests; approve/reject; "Register as
-                            Member" link pre-fills the Members form
-    member_documents/  Staff-side upload/list/delete of any member's ID scans, application
-                         forms etc. (members can also self-upload from their own profile)
-    password_resets/  Fulfill pending reset requests, or reset any user's password ad hoc
-    savings/     Record deposits/withdrawals, balances, history
-    loans/       Apply, approve/reject, repayment schedule, payments
-    meetings/    Schedule, attendance, minutes
-    messages/    Member <-> leadership threads, plus a leadership-only channel; sender avatars
-                  throughout; an "Unanswered Member Messages" / "My Threads Awaiting Reply"
-                  stat surfaces on the main Dashboard depending on messages.manage
-    notifications/  Per-user notification inbox, presented as a card list (icon per type +
-                     status badge) rather than a plain table
-    finance/     Issue fines, record expenses/other income (feeds the Financial Report)
-    feedback/    Review visitor ideas submitted via the public feedback form
-    documents/   Upload/list/delete club documents (constitution, bylaws, AGM reports)
-    reports/     Membership / Loan / Financial / Monthly reports
-    announcements/  Publish home-page news
-    board_terms/  President-only: appoint/end leadership terms; history of who has
-                   held each position and when
-    settings/    President-only club settings (name, contact, logo)
-  scripts/
-    create_admin.php     CLI: bootstrap a login (used for all 4 leaders, not just President)
-    send_reminders.php   CLI: queue + dispatch reminder notifications (for cron)
-    crop_passport.php    CLI: one-off GD tool to crop a photo to a tight passport-style square
-  database/
-    schema.sql   Full schema + seed data (roles, loan/saving types, templates)
-  assets/uploads/   Club logo, member profile pictures, and club documents (.htaccess blocks execution)
-  assets/images/    Static images bundled with the app (e.g. leadership photos)
-  login.php, logout.php, dashboard.php
+config/
+  config.php          Env-based settings, session hardening, security headers
+  database.php        PDO singleton via db()
+includes/
+  auth.php            Login, rate limiting, requireLogin()/requireRole()
+  functions.php       e(), CSRF helpers, flash messages, statusBadge()
+  icons.php           Inline SVG icon set — icon() and brandIcon()
+  images.php          Homepage photography (Unsplash ids + alt text)
+  club_info.php       Club contact details, with fallback to the president's
+  notifications.php   queueNotification() / dispatchPendingNotifications()
+  nav.php             Logged-in sidebar navigation
+  public_nav.php      Public tab bar (labels, icons, dropdown descriptions)
+  leadership.php      Committee list for the public pages
+  header.php          Two-tier public header + logged-in topbar, all styling
+  footer.php          Site footer, back-to-top, scroll-reveal, FAQ accordion
+  page_loader.php     Branded loading overlay
+  flash_toasts.php    Auto-dismissing toasts
+
+router.php            Front controller for `php -S` — enforces .htaccess rules
+sitemap.php           XML sitemap (served at /sitemap.xml)
+robots.txt            Crawl rules
+
+Public pages: index, about, membership, leadership, announcements, contact,
+feedback, forgot_password, privacy, terms, 404
+
+modules/              members, membership_requests, member_documents,
+                      password_resets, savings, loans, meetings, messages,
+                      notifications, finance, reports, announcements, feedback,
+                      documents, board_terms, permissions, settings
+
+database/schema.sql   Full schema + seed data
+scripts/
+  create_admin.php    Bootstrap the first login
+  railway_setup.php   Idempotent deploy bootstrap (schema + admin + migrations)
+  send_reminders.php  Daily reminder dispatch
 ```
-
-## Public site vs. logged-in system
-
-The site is now two distinct experiences sharing one layout shell
-(`includes/header.php` / `footer.php`):
-
-- **Public** (no login): a tabbed marketing site — Home, About, Leadership,
-  Announcements, Contact — plus a Login button. Tabs are defined once in
-  `includes/public_nav.php`. The Home page has a hero banner, feature
-  highlights, a leadership teaser, and the 3 latest announcements; each
-  teaser links to its full page.
-- **Logged-in**: the topbar switches to a user chip + Logout, and a
-  role-filtered **sidebar** (defined once in `includes/nav.php`) replaces the
-  public tabs for navigating every module.
-
-Both are responsive: under the `md` breakpoint the public tabs collapse
-into a hamburger-triggered dropdown, and the sidebar collapses into a
-hamburger-triggered slide-in panel.
-
-The login page (`login.php`) uses a two-panel layout — club branding with
-logo/tagline on the left (desktop), the form on the right — instead of a
-bare form. Its password field has a Show/Hide toggle.
-
-**Profile pictures are universal** — `photo_path` lives on `users` (not
-`members`), so every account can set one from "My Profile", including
-leaders who have no `members` row (this used to be a real gap: the upload
-card only rendered `if ($member)`, so the President/VP/etc. had no way to
-set a photo at all unless they also happened to be a registered member).
-`avatarHtml()` in `includes/functions.php` renders the photo or a colored
-initial circle as a fallback, and is used consistently in the topbar (next
-to your own name), the staff Members list, and Messages (next to each
-sender's name in both the thread list and individual thread view) — so a
-photo set once is visible everywhere a person's identity shows up, not
-just their own profile page.
-
-**Flash messages render as toasts**, not inline banners — `setFlash()`/
-`getFlashes()` are unchanged, but `includes/header.php` now reads
-`getFlashes()` once and hands the result to `includes/flash_toasts.php`,
-which renders them top-right, auto-dismissing after 5 seconds (staggered
-if there are several), with a manual close button. Login's own inline
-`$error` (a same-request re-render, not a session flash) is untouched and
-still shows as the original inline banner right above the form.
-
-Every page shows a branded full-screen loading overlay (club logo, gentle
-pulse animation) on first paint and on any form submit — `header.php`
-includes `includes/page_loader.php` right after `<body>`, so it's automatic
-site-wide with no per-page wiring. It fades out on `window.load`, and
-re-appears with a "Please wait…" message (or a form's own
-`data-loading-text="..."` attribute, e.g. login's "Signing you in…") the
-moment any form on the page is submitted — masking both the brief unstyled
-flash while the Tailwind CDN script processes and the dead pause while the
-server handles the request. A `<noscript>` rule hides it instantly if JS is
-off, and a 4-second timeout guarantees it can never get stuck open.
-
-## Requirements
-
-- PHP 8.0+ with `pdo_mysql` and `fileinfo` extensions
-- MySQL 5.7+ / MariaDB 10.3+
-- A web server (Apache/Nginx via XAMPP/WAMP, or PHP's built-in server for testing)
-
-## Setup
-
-1. **Database**: create it from the schema, which also seeds default roles,
-   permission codes, savings/loan types, and notification templates:
-   ```
-   mysql -u root -p < database/schema.sql
-   ```
-
-2. **Configuration**: `config/config.php` reads these environment variables,
-   falling back to XAMPP-friendly defaults if unset (`DB_HOST=127.0.0.1`,
-   `DB_NAME=ikizere_funds`, `DB_USER=root`, `DB_PASS=` empty):
-   - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
-   - `APP_URL` — base URL the app is served from (default `http://localhost/ikizere_funds`)
-   - `APP_DEBUG` — `1` shows PHP errors; defaults to `0` (off) if unset, so
-     set it to `1` explicitly for local development
-
-   Either export these as real environment variables, or just edit the
-   defaults in `config/config.php` directly for local testing.
-
-3. **First login**: the schema does **not** create any user account (there is
-   nothing to seed a password for). Create the first President account from
-   the command line:
-   ```
-   php scripts/create_admin.php "Your Name" president1 "SomeStrongPass!" you@example.com 078xxxxxxx president
-   ```
-   Run it with no arguments to be prompted interactively instead. Every
-   other account after this can be created normally through the Members
-   module once you're logged in.
-
-4. **Serve it**: point Apache's document root at this folder (XAMPP: copy
-   into `htdocs/ikizere_funds`), or for quick local testing:
-   ```
-   php -S localhost:8000
-   ```
-   Then visit `/login.php`.
-
-5. **Reminders (optional)**: `scripts/send_reminders.php` queues and
-   dispatches savings/loan/meeting reminders. Run it once daily via cron
-   (Linux) or Windows Task Scheduler:
-   ```
-   php scripts/send_reminders.php
-   ```
 
 ## Roles & access
 
@@ -414,6 +568,18 @@ Twilio, or SMTP) is a one-function change.
 - Logo uploads are validated by real file content (`mime_content_type`), size
   capped at 2 MB, saved under a random filename, and the upload folder has
   an `.htaccess` that blocks PHP execution as defense in depth.
+- `router.php` blocks direct HTTP access to `.env`, dotfiles, `config/`,
+  `database/`, `scripts/`, `includes/` and build manifests, and refuses to
+  execute any `.php` uploaded into `assets/uploads/`. This matters because
+  PHP's built-in server — used by Docker and Railway — ignores `.htaccess`
+  entirely; without the router those paths are publicly readable.
+- Real environment variables take precedence over `.env`, so a leftover file
+  cannot silently override production configuration.
+- Security headers (`X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`) are sent from `config/config.php` on every response, so
+  they apply on both Apache and the built-in server.
+- The public site is `index, follow`; every logged-in page is served
+  `noindex, nofollow`.
 
 ## Suggested manual test flow
 
@@ -444,6 +610,11 @@ Twilio, or SMTP) is a one-function change.
 ## Known limitations
 
 - Tailwind CSS is loaded from a CDN — no offline styling without switching to a compiled build.
+- Homepage photography is hotlinked from the Unsplash CDN (see `includes/images.php`).
+  To self-host, download the images into `assets/images/` and point the `id`
+  entries at local paths.
+- Uploads live on the container filesystem; on Railway they need a mounted
+  volume or they are lost on every redeploy.
 - No automated test suite; verification is manual (see above).
 - SMS/email sending is stubbed, as noted above.
 - PDF export relies on the browser's print dialog rather than a server-generated file.

@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $rows = db()->query('SELECT setting_key, setting_value FROM club_settings')->fetchAll();
 $settings = array_column($rows, 'setting_value', 'setting_key');
 
+$pageTitle = 'Member Login';
+$pageDescription = 'Sign in to your IKIZERE FUNDS Club account to view savings, loans, meetings and notifications.';
+
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="max-w-3xl mx-auto mt-10 mb-6 rounded-xl overflow-hidden shadow-lg grid grid-cols-1 md:grid-cols-2 bg-white">
@@ -54,7 +57,7 @@ require __DIR__ . '/includes/header.php';
             <div class="relative">
                 <input type="password" id="password" name="password" required class="pr-14">
                 <button type="button" id="toggle-password" tabindex="-1" aria-label="Show password"
-                        class="btn-plain absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400 hover:text-primary cursor-pointer">Show</button>
+                        class="btn-plain absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 hover:text-primary cursor-pointer">Show</button>
             </div>
 
             <button type="submit" class="w-full">Log In</button>

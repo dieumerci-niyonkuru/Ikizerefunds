@@ -1,0 +1,18 @@
+# IKIZERE FUNDS Club
+
+User-agent: *
+Allow: /
+
+# Member area and internals — nothing here is useful in search results.
+Disallow: /modules/
+Disallow: /config/
+Disallow: /database/
+Disallow: /scripts/
+Disallow: /includes/
+Disallow: /assets/uploads/
+Disallow: /dashboard.php
+Disallow: /login.php
+Disallow: /logout.php
+Disallow: /forgot_password.php
+
+Sitemap: /sitemap.xml

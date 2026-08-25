@@ -48,6 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reque
     redirect('forgot_password.php');
 }
 
+$pageTitle = 'Reset Password';
+$pageDescription = 'Request a password reset for your IKIZERE FUNDS Club member account.';
+
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="card auth-card text-center">

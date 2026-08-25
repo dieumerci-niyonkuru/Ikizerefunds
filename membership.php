@@ -51,6 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reque
     redirect('membership.php');
 }
 
+$pageTitle = 'Membership';
+$pageDescription = 'How to join IKIZERE FUNDS Club: who can apply, what you need, member benefits, and the online join request form.';
+
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="card">
@@ -80,6 +83,7 @@ require __DIR__ . '/includes/header.php';
 <?php if ($savingTypes): ?>
 <div class="card">
     <h2>Savings Plans</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Plan</th><th>Minimum Amount</th><th>Withdrawable</th><th>Details</th></tr></thead>
         <tbody>
@@ -93,12 +97,14 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 
 <?php if ($loanTypes): ?>
 <div class="card">
     <h2>Loan Products</h2>
+    <div class="table-wrap">
     <table>
         <thead><tr><th>Loan Type</th><th>Interest Rate</th><th>Max Amount</th><th>Max Term</th><th>Details</th></tr></thead>
         <tbody>
@@ -113,6 +119,7 @@ require __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
         </tbody>
     </table>
+    </div>
 </div>
 <?php endif; ?>
 
@@ -137,7 +144,7 @@ require __DIR__ . '/includes/header.php';
 
         <label for="photo">Profile Photo (optional)</label>
         <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/gif,image/webp">
-        <small class="text-gray-400">JPG, PNG, GIF, or WebP. Max 5 MB.</small>
+        <small class="text-gray-500">JPG, PNG, GIF, or WebP. Max 5 MB.</small>
 
         <button type="submit">Request to Join</button>
     </form>

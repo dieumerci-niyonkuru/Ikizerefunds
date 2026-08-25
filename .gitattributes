@@ -1,0 +1,25 @@
+# Normalise text files to LF in the repository.
+* text=auto eol=lf
+
+# Files that MUST be LF regardless of platform. A CRLF here turns the shebang
+# into "#!/bin/bash\r", and the Docker container fails to start with a
+# confusing "no such file or directory".
+*.sh            text eol=lf
+docker-entrypoint.sh text eol=lf
+Procfile        text eol=lf
+Dockerfile      text eol=lf
+*.php           text eol=lf
+*.sql           text eol=lf
+*.json          text eol=lf
+
+# Windows-only helper stays CRLF.
+*.bat           text eol=crlf
+
+# Never touch binaries.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.webp          binary
+*.ico           binary
+*.pdf           binary
