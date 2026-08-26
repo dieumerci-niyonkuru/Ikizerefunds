@@ -107,14 +107,24 @@ function dispatchPendingNotifications(int $maxAgeDays = 14): array
     }
 
     require_once __DIR__ . '/mailer.php';
+    require_once __DIR__ . '/sms.php';
 
-    if (!mailerConfigured()) {
+    $canEmail = mailerConfigured();
+    $canSms   = smsConfigured();
+
+    // With neither channel available there is nothing to do. Leave the rows
+    // pending rather than marking them sent: they still show in the in-app
+    // inbox, and they go out once a gateway is configured.
+    if (!$canEmail && !$canSms) {
         $result['skipped'] = count($rows);
-        $result['reason'] = 'SMTP is not configured (set SMTP_HOST / SMTP_USER / SMTP_PASS). '
-            . 'Notifications remain pending and are still visible in each member\'s inbox.';
+        $result['reason'] = 'No delivery gateway is configured. Set SMTP_* for email '
+            . 'and/or AT_API_KEY / TWILIO_SID for SMS. Notifications remain pending and '
+            . 'are still visible in each member\'s inbox.';
 
         return $result;
     }
+
+    $smsFallback = smsConfig()['fallback'];
 
     $markSent = $pdo->prepare(
         "UPDATE notifications SET status = 'sent', sent_at = NOW(), error = NULL WHERE id = ?"
@@ -125,28 +135,50 @@ function dispatchPendingNotifications(int $maxAgeDays = 14): array
 
     foreach ($rows as $row) {
         $channel = strtolower($row['channel'] ?: 'email');
-
-        if ($channel === 'sms') {
-            $markFailed->execute(['No SMS gateway is configured', $row['id']]);
-            $result['failed']++;
-            continue;
-        }
-
-        if (empty($row['email'])) {
-            $markFailed->execute(['Member has no email address on file', $row['id']]);
-            $result['failed']++;
-            continue;
-        }
-
         $subject = notificationSubject($row['type']);
 
-        $outcome = sendMail(
-            $row['email'],
-            $row['full_name'] ?? '',
-            $subject,
-            $row['message'],
-            notificationEmailHtml($subject, $row['message'], $row['full_name'] ?? 'member')
-        );
+        // Route to SMS when explicitly asked for, or when SMS_FALLBACK is on
+        // and the member has a phone but no email to write to.
+        $useSms = $channel === 'sms'
+            || ($smsFallback && $canSms && empty($row['email']) && !empty($row['phone']));
+
+        if ($useSms) {
+            if (!$canSms) {
+                $markFailed->execute(['No SMS gateway is configured', $row['id']]);
+                $result['failed']++;
+                continue;
+            }
+
+            if (empty($row['phone'])) {
+                $markFailed->execute(['Member has no phone number on file', $row['id']]);
+                $result['failed']++;
+                continue;
+            }
+
+            // SMS is billed per segment, so lead with the club name and keep
+            // the body to the template text.
+            $outcome = sendSms($row['phone'], APP_NAME . ': ' . $row['message']);
+        } else {
+            if (!$canEmail) {
+                $markFailed->execute(['Email is not configured (set SMTP_HOST)', $row['id']]);
+                $result['failed']++;
+                continue;
+            }
+
+            if (empty($row['email'])) {
+                $markFailed->execute(['Member has no email address on file', $row['id']]);
+                $result['failed']++;
+                continue;
+            }
+
+            $outcome = sendMail(
+                $row['email'],
+                $row['full_name'] ?? '',
+                $subject,
+                $row['message'],
+                notificationEmailHtml($subject, $row['message'], $row['full_name'] ?? 'member')
+            );
+        }
 
         if ($outcome['ok']) {
             $markSent->execute([$row['id']]);

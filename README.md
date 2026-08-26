@@ -18,6 +18,7 @@ Plain PHP 8 (PDO/MySQL), no framework, no build step.
 - [Environment variables](#environment-variables)
 - [**Login credentials**](#login-credentials) — usernames, passwords, roles
 - [Email notifications](#email-notifications)
+- [SMS notifications](#sms-notifications)
 - [After the first deploy](#after-the-first-deploy)
 - [Troubleshooting](#troubleshooting)
 - [Project structure](#project-structure)
@@ -445,6 +446,79 @@ dumps the entire SMTP conversation so you can see which step was rejected.
 
 Nothing is ever marked `sent` unless the mail server accepted it.
 
+---
+
+## SMS notifications
+
+Optional, like email, and configured independently. Useful when members have a
+phone but no email address — common for a village savings group.
+
+### Configure
+
+Pick **one** provider.
+
+**Africa's Talking** (recommended for Rwanda — local rates and shortcodes):
+
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `AT_USERNAME` | `ikizerefunds` | Your account username |
+| `AT_API_KEY` | *api key* | From the Africa's Talking dashboard |
+| `AT_SENDER_ID` | `IKIZERE` | Optional; an approved sender ID or shortcode |
+
+**Twilio** (alternative):
+
+| Variable | Example |
+|----------|---------|
+| `TWILIO_SID` | `ACxxxxxxxx…` |
+| `TWILIO_TOKEN` | *auth token* |
+| `TWILIO_FROM` | `+15551234567` |
+
+Shared options:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `SMS_PROVIDER` | auto-detected | `africastalking` or `twilio` |
+| `SMS_FALLBACK` | off | `1` texts members who have a phone but no email |
+| `SMS_TIMEOUT` | `15` | Seconds |
+
+> **`SMS_FALLBACK` costs money.** It is off by default. Turn it on only when
+> you are happy to pay per message for members with no email address.
+
+### Phone numbers
+
+Members are registered with local numbers and these are converted to E.164
+automatically, so nothing has to be re-entered:
+
+| Stored as | Sent as |
+|-----------|---------|
+| `0790974685` | `+250790974685` |
+| `250790974685` | `+250790974685` |
+| `790974685` | `+250790974685` |
+| `+250 790 974 685` | `+250790974685` |
+
+Anything unparseable is recorded as `failed` with the reason, never guessed at.
+
+### Verify
+
+```bash
+php scripts/test_sms.php 0790974685
+```
+
+Set `AT_USERNAME=sandbox` with a sandbox API key to test without spending
+credit — the client switches to the sandbox host automatically.
+
+### How routing works
+
+| Notification | Goes by |
+|--------------|---------|
+| `channel = 'sms'` | SMS |
+| `channel = 'email'` (default) | Email |
+| `channel = 'email'`, no email on file, `SMS_FALLBACK=1`, phone present | SMS |
+| Neither gateway configured | Stays `pending`, still shown in the in-app inbox |
+
+Messages are prefixed with the club name and capped at 300 characters, since
+gateways bill per 160-character segment.
+
 ### Sending on a schedule
 
 `scripts/send_reminders.php` queues the day's reminders and dispatches
@@ -757,10 +831,10 @@ noted in that section that exist for future use but aren't enforced yet.
 sends over SMTP and only marks a row `sent` once the server accepts the
 message; failures are recorded with the reason on the row.
 
-**SMS delivery is not wired up.** Notifications queued with `channel = 'sms'`
-are marked `failed` with the reason "No SMS gateway is configured" rather than
-silently claiming success. Adding one (Africa's Talking, Twilio) means one HTTP
-call in the `$channel === 'sms'` branch of `dispatchPendingNotifications()`.
+**SMS delivery is also live** — see [SMS notifications](#sms-notifications).
+Africa's Talking and Twilio are both supported, with local Rwandan numbers
+converted to E.164 automatically. Like email it is optional: unconfigured, rows
+stay `pending` and remain visible in the in-app inbox.
 
 ## Security notes
 
@@ -822,5 +896,6 @@ call in the `$channel === 'sms'` branch of `dispatchPendingNotifications()`.
 - Uploads live on the container filesystem; on Railway they need a mounted
   volume or they are lost on every redeploy.
 - No automated test suite; verification is manual (see above).
-- SMS sending has no gateway; email sending works once SMTP is configured.
+- Email and SMS both work once configured; unconfigured, notifications stay
+  in the in-app inbox only.
 - PDF export relies on the browser's print dialog rather than a server-generated file.
