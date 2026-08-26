@@ -252,6 +252,25 @@ rolls back immediately. Note that database *migrations* are forward-only: the
 setup script adds columns and templates but never drops them, so a rollback of
 code is safe against a newer database.
 
+### Verify a deploy
+
+After any deploy, run the health check from the Railway shell:
+
+```bash
+php scripts/health_check.php
+```
+
+It confirms the database connection, that all core tables and every
+migration-added column exist, that someone can actually log in, whether email
+and SMS are configured, whether any account still uses a password published in
+this README, and that uploads are writable. Exit code is 0 when nothing is
+broken and 1 when something needs fixing.
+
+A missing migration column is the one failure worth knowing about, because
+`dashboard.php` reads `notifications.read_at` on **every login**. If the check
+reports it missing, redeploy — `railway_setup.php` adds it and logs
+`Added read_at column to notifications.`
+
 ### Deploy checklist
 
 - [ ] `ADMIN_PASS` set (or all seeded passwords changed after first login)
@@ -260,6 +279,7 @@ code is safe against a newer database.
 - [ ] `APP_DEBUG` unset or `0`
 - [ ] Domain generated under Settings → Networking
 - [ ] Logs end with `[Railway Setup] Done.` then `Starting server on port …`
+- [ ] `php scripts/health_check.php` reports no problems
 
 ---
 
