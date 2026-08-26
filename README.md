@@ -382,7 +382,29 @@ Three ways, best first:
 2. **After logging in** — Members → Edit → set a new password for each account,
    and delete any seeded account you are not using.
 
-3. **Locally, from the CLI** — create an account with your own password:
+3. **Rotate everything at once** — the fastest fix for a live deployment.
+   From the Railway shell:
+
+   ```bash
+   php scripts/rotate_passwords.php --dry-run
+   ```
+
+   That lists which accounts are still on a published default. Then:
+
+   ```bash
+   php scripts/rotate_passwords.php
+   ```
+
+   It generates a strong password per account, prints them **once**, and stores
+   only the hash. The passwords are never written to a file and never enter the
+   audit log — the log records only that a rotation happened. Copy them before
+   closing the terminal, then have each holder sign in and set their own from
+   **Members → Edit**.
+
+   Useful flags: `--user=president` for a single account, `--all` to rotate
+   every active account rather than only the defaults.
+
+4. **Locally, from the CLI** — create an account with your own password:
 
    ```bash
    php scripts/create_admin.php "Your Name" myusername "MyStrongPass!" you@example.com 0788000000 president
