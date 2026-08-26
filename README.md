@@ -367,6 +367,26 @@ Three ways, best first:
    php scripts/create_admin.php "Your Name" myusername "MyStrongPass!" you@example.com 0788000000 president
    ```
 
+### Forgotten passwords (self-service)
+
+Members reset their own password from **Forgot password?** on the login page:
+
+1. They enter their username **or** the email on their account.
+2. If SMTP is configured and they have an email on file, they get a link that
+   works **once** and expires after **one hour**.
+3. The link opens a page to choose a new password (minimum 8 characters).
+4. Using it invalidates every other outstanding link for that account and
+   clears any lockout from failed login attempts.
+
+The database only ever stores `sha256(token)` — the usable value exists only in
+the email. Requests are throttled to 3 live links per account per 15 minutes,
+and the page returns the same message whether or not the account exists, so it
+cannot be used to discover usernames.
+
+**Without SMTP, or for an account with no email**, the request falls back to the
+old behaviour: club leadership is notified and fulfils it under **Password
+Resets**. Nothing breaks; the member just needs a person in the loop.
+
 ### If you are locked out
 
 The president can reset anyone's password under **Password Resets**. If no

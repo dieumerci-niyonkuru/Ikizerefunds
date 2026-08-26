@@ -14,5 +14,6 @@ Disallow: /dashboard.php
 Disallow: /login.php
 Disallow: /logout.php
 Disallow: /forgot_password.php
+Disallow: /reset_password.php
 
 Sitemap: /sitemap.xml
