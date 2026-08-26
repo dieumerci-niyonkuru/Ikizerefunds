@@ -99,7 +99,35 @@ if (date('d') === '25') {
 }
 
 // ------------------------------------------------------------
-// Dispatch everything queued (stubbed delivery, see includes/notifications.php).
+// Dispatch everything queued. Email goes out over SMTP when configured;
+// see includes/mailer.php.
 // ------------------------------------------------------------
-$sent = dispatchPendingNotifications();
-echo "{$sent} notification(s) dispatched.\n";
+$r = dispatchPendingNotifications();
+
+echo "\nDispatch: {$r['sent']} sent, {$r['failed']} failed";
+if ($r['skipped']) {
+    echo ", {$r['skipped']} left pending";
+}
+if ($r['expired']) {
+    echo ", {$r['expired']} expired";
+}
+echo ".\n";
+
+if ($r['reason'] !== '') {
+    echo "Note: {$r['reason']}\n";
+}
+
+// Surface the actual failure reasons so a cron log is useful on its own.
+if ($r['failed'] > 0) {
+    $failures = $pdo->query(
+        "SELECT error, COUNT(*) AS n FROM notifications
+         WHERE status = 'failed' AND error IS NOT NULL
+         GROUP BY error ORDER BY n DESC LIMIT 5"
+    )->fetchAll();
+
+    foreach ($failures as $f) {
+        echo "  [{$f['n']}x] {$f['error']}\n";
+    }
+}
+
+exit($r['failed'] > 0 && $r['sent'] === 0 ? 1 : 0);

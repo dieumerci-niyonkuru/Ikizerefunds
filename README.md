@@ -17,6 +17,7 @@ Plain PHP 8 (PDO/MySQL), no framework, no build step.
 - [Redeploying on Railway](#redeploying-on-railway)
 - [Environment variables](#environment-variables)
 - [**Login credentials**](#login-credentials) — usernames, passwords, roles
+- [Email notifications](#email-notifications)
 - [After the first deploy](#after-the-first-deploy)
 - [Troubleshooting](#troubleshooting)
 - [Project structure](#project-structure)
@@ -375,6 +376,70 @@ with any MySQL client and delete the stale user row so the next deploy re-seeds 
 
 ---
 
+## Email notifications
+
+Savings reminders, loan approvals, payment-due alerts and meeting notices are
+**always** written to each member's in-app inbox. Configuring SMTP additionally
+delivers them by email.
+
+**This is optional.** Leave it unset and email is skipped cleanly — the app
+works exactly as before and notifications stay visible in the inbox.
+
+### Configure
+
+Add these to your Railway service variables (or your local `.env`):
+
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `SMTP_HOST` | `smtp.gmail.com` | Required to enable email |
+| `SMTP_PORT` | `587` | Defaults to 587 (or 465 when `SMTP_SECURE=ssl`) |
+| `SMTP_USER` | `ikizerefunds@gmail.com` | Omit to send unauthenticated |
+| `SMTP_PASS` | *app password* | **Not** your normal login password |
+| `SMTP_SECURE` | `tls` | `tls` (587) · `ssl` (465) · `none` |
+| `SMTP_FROM` | `ikizerefunds@gmail.com` | Defaults to `SMTP_USER` |
+| `SMTP_FROM_NAME` | `IKIZERE FUNDS Club` | Display name on the message |
+
+> **Gmail:** enable 2-Step Verification, then create an **App Password**
+> (Google Account → Security → App passwords) and use that 16-character value
+> as `SMTP_PASS`. A normal Gmail password will be rejected.
+
+### Verify
+
+```bash
+php scripts/test_email.php you@example.com
+```
+
+It prints the resolved configuration, sends one real message, and on failure
+dumps the entire SMTP conversation so you can see which step was rejected.
+
+### How delivery behaves
+
+| Situation | Row status | Result |
+|-----------|-----------|--------|
+| Sent successfully | `sent` | `sent_at` recorded |
+| SMTP not configured | stays `pending` | Nothing is lost; sends once configured |
+| Member has no email | `failed` | Reason stored on the row |
+| Server rejected / unreachable | `failed` | Real SMTP error stored on the row |
+| Pending for over 14 days | `expired` | Stops stale reminders going out later |
+| `channel = 'sms'` | `failed` | No SMS gateway is wired up |
+
+Nothing is ever marked `sent` unless the mail server accepted it.
+
+### Sending on a schedule
+
+`scripts/send_reminders.php` queues the day's reminders and dispatches
+everything pending. Run it once daily:
+
+```bash
+php scripts/send_reminders.php
+```
+
+On Railway, add it as a **Cron** service (Settings → Cron Schedule, e.g.
+`0 8 * * *`) pointed at the same image. It exits non-zero if every send failed,
+so a failing schedule is visible.
+
+---
+
 ## After the first deploy
 
 1. **Log in and change every seeded password** (Settings → or Members → Edit).
@@ -667,10 +732,15 @@ module), `messages`/`feedback`/`membership_requests`, `documents`
 wired up. The one caveat is the handful of finer-grained permission codes
 noted in that section that exist for future use but aren't enforced yet.
 
-Notification **delivery** is also a stub: `dispatchPendingNotifications()`
-in `includes/notifications.php` marks queued messages as "sent" without
-calling a real SMS/email provider. Plugging in one (e.g. Africa's Talking,
-Twilio, or SMTP) is a one-function change.
+**Email notification delivery is live** — see
+[Email notifications](#email-notifications). `dispatchPendingNotifications()`
+sends over SMTP and only marks a row `sent` once the server accepts the
+message; failures are recorded with the reason on the row.
+
+**SMS delivery is not wired up.** Notifications queued with `channel = 'sms'`
+are marked `failed` with the reason "No SMS gateway is configured" rather than
+silently claiming success. Adding one (Africa's Talking, Twilio) means one HTTP
+call in the `$channel === 'sms'` branch of `dispatchPendingNotifications()`.
 
 ## Security notes
 
@@ -732,5 +802,5 @@ Twilio, or SMTP) is a one-function change.
 - Uploads live on the container filesystem; on Railway they need a mounted
   volume or they are lost on every redeploy.
 - No automated test suite; verification is manual (see above).
-- SMS/email sending is stubbed, as noted above.
+- SMS sending has no gateway; email sending works once SMTP is configured.
 - PDF export relies on the browser's print dialog rather than a server-generated file.

@@ -220,6 +220,35 @@ try {
     // Already VARCHAR or table doesn't exist — fine
 }
 
+// ---- Ensure notifications can record why a delivery failed ----
+try {
+    $pdo->exec("ALTER TABLE notifications ADD COLUMN error VARCHAR(255) NULL AFTER status");
+    echo "[Railway Setup] Added error column to notifications.\n";
+} catch (PDOException $e) {
+    // Column already exists
+}
+
+// ---- Separate "has the member read it" from "did delivery succeed" ----
+// These used to share the status column, so opening the inbox flipped a row to
+// 'read' and it was never emailed. read_at now tracks reading; status tracks
+// delivery only.
+try {
+    $pdo->exec("ALTER TABLE notifications ADD COLUMN read_at TIMESTAMP NULL DEFAULT NULL AFTER sent_at");
+    echo "[Railway Setup] Added read_at column to notifications.\n";
+
+    // Rows already marked 'read' were seen by the member and delivered under
+    // the old stub — carry both facts across so they are not re-sent.
+    $migrated = $pdo->exec(
+        "UPDATE notifications SET read_at = COALESCE(sent_at, created_at), status = 'sent'
+         WHERE status = 'read'"
+    );
+    if ($migrated) {
+        echo "[Railway Setup] Migrated {$migrated} previously-read notification(s).\n";
+    }
+} catch (PDOException $e) {
+    // Column already exists
+}
+
 // ---- Ensure password_reset_request notification template exists ----
 $templateCheck = $pdo->prepare("SELECT COUNT(*) FROM notification_templates WHERE type = 'password_reset_request'");
 $templateCheck->execute();

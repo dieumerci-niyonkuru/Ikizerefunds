@@ -55,7 +55,7 @@ if (userHasPermission($user, 'messages.manage')) {
     $stats['My Threads Awaiting Reply'] = (int) $stmt->fetchColumn();
 }
 
-$stmt = db()->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND status = 'pending'");
+$stmt = db()->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = ? AND read_at IS NULL');
 $stmt->execute([$user['id']]);
 $stats['New Notifications'] = (int) $stmt->fetchColumn();
 
